@@ -131,3 +131,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Code space
+/helsinki-hsl-clock.code-workspace
