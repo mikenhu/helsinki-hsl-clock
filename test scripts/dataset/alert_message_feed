@@ -1,0 +1,393 @@
+header {
+  gtfs_realtime_version: "2.0"
+  incrementality: FULL_DATASET
+  timestamp: 1673544821
+}
+entity {
+  id: "119232"
+  alert {
+    active_period {
+      start: 1671200880
+      end: 1680294600
+    }
+    informed_entity {
+      stop_id: "1020601"
+    }
+    informed_entity {
+      stop_id: "1020602"
+    }
+    informed_entity {
+      stop_id: "1201602"
+    }
+    informed_entity {
+      stop_id: "1040601"
+    }
+    informed_entity {
+      stop_id: "1111601"
+    }
+    informed_entity {
+      stop_id: "1201601"
+    }
+    informed_entity {
+      stop_id: "1111602"
+    }
+    informed_entity {
+      stop_id: "1040602"
+    }
+    cause: OTHER_CAUSE
+    effect: OTHER_EFFECT
+    url {
+      translation {
+        text: "https://www.hsl.fi/en"
+        language: "en"
+      }
+      translation {
+        text: "https://www.hsl.fi/"
+        language: "fi"
+      }
+      translation {
+        text: "https://www.hsl.fi/sv"
+        language: "sv"
+      }
+    }
+    header_text {
+      translation {
+        text: "Some escalators out of service at the stations of Kamppi, Central Railway Station, Ruoholahti and Hakaniemi"
+        language: "en"
+      }
+      translation {
+        text: "Osa aseman liukuportaista poissa k\303\244yt\303\266st\303\244 Kampissa, Rautatientorilla, Ruoholahdessa ja Hakaniemess\303\244 s\303\244hk\303\266n s\303\244\303\244st\303\244miseksi"
+        language: "fi"
+      }
+      translation {
+        text: "En del av rulltrapporn ur bruk vid stationerna Kampen, J\303\244rnv\303\244gstorget, Gr\303\244sviken och Hagn\303\244s f\303\266r att minska elf\303\266rbrukning"
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "From 17 Dec some escalators out of service at the stations of Kamppi, Central Railway Station Metro Station, Ruoholahti and Hakaniemi to save electricity during the winter."
+        language: "en"
+      }
+      translation {
+        text: "La 17.12. alkaen osa aseman liukuportaista poissa k\303\244yt\303\266st\303\244 Kampissa, Rautatientorilla, Ruoholahdessa ja Hakaniemess\303\244 s\303\244hk\303\266n s\303\244\303\244st\303\244miseksi talven ajan."
+        language: "fi"
+      }
+      translation {
+        text: "Fr.o.m. l\303\266r 17.12 en del av rulltrapporna ur bruk vid stationerna Kampen, J\303\244rnv\303\244gstorget, Gr\303\244sviken och Hagn\303\244s f\303\266r att minska elf\303\266rbrukningen under vintern."
+        language: "sv"
+      }
+    }
+    severity_level: INFO
+  }
+}
+entity {
+  id: "121205"
+  alert {
+    active_period {
+      start: 1672224240
+      end: 1673559000
+    }
+    informed_entity {
+      stop_id: "1121601"
+    }
+    informed_entity {
+      stop_id: "1121437"
+    }
+    informed_entity {
+      stop_id: "1121602"
+    }
+    informed_entity {
+      stop_id: "1113435"
+    }
+    cause: OTHER_CAUSE
+    effect: NO_EFFECT
+    url {
+      translation {
+        text: "https://www.hsl.fi/en/hsl/news/service-updates/2022/12/changes-to-access-routes-at-sornainen-metro-station-from-2-january-2023"
+        language: "en"
+      }
+      translation {
+        text: "https://www.hsl.fi/hsl/uutiset/liikennetiedote/2022/12/muutoksia-sornaisten-metroaseman-kulkureiteissa-2.1.-alkaen"
+        language: "fi"
+      }
+      translation {
+        text: "https://www.hsl.fi/sv/hrt/nyheter/liikennetiedotteet/2022/12/forandringar-i-gangrutterna-vid-sornas-metrostation-fr.o.m.-2.1"
+        language: "sv"
+      }
+    }
+    header_text {
+      translation {
+        text: "S\303\266rn\303\244inen Metro Station entrance G will be closed on Mon 2 Jan due to refurbishment"
+        language: "en"
+      }
+      translation {
+        text: "S\303\266rn\303\244isten metroaseman G-sis\303\244\303\244nk\303\244ynti suljetaan ma 2.1. perusparannuksen takia"
+        language: "fi"
+      }
+      translation {
+        text: "Ing\303\245ng G vid S\303\266rn\303\244s metrostation st\303\244ngs m\303\245n 2.1 p.g.a. grundrenoveringen"
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "S\303\266rn\303\244inen Metro Station stair entrance G at the junction of H\303\244meentie and Helsinginkatu will be closed on Mon 2 Jan due to refurbishment."
+        language: "en"
+      }
+      translation {
+        text: "S\303\266rn\303\244isten metroaseman G-sis\303\244\303\244nk\303\244ynti eli portaikko H\303\244meentien ja Helsinginkadun yhtym\303\244kohdassa suljetaan ma 2.1. perusparannuksen takia."
+        language: "fi"
+      }
+      translation {
+        text: "Ing\303\245ng G vid S\303\266rn\303\244s metrostation dvs. trappan vid korsningen av Tavastv\303\244gen och Helsingegatan st\303\244ngs m\303\245n 2.1 p.g.a. grundrenoveringen."
+        language: "sv"
+      }
+    }
+    severity_level: INFO
+  }
+}
+entity {
+  id: "122329"
+  alert {
+    active_period {
+      start: 1673578800
+      end: 1673960400
+    }
+    informed_entity {
+      route_id: "4711"
+    }
+    informed_entity {
+      route_id: "4721N"
+    }
+    informed_entity {
+      route_id: "4711K"
+    }
+    informed_entity {
+      route_id: "4731N"
+    }
+    informed_entity {
+      route_id: "4731"
+    }
+    informed_entity {
+      route_id: "4721"
+    }
+    cause: OTHER_CAUSE
+    effect: NO_EFFECT
+    url {
+      translation {
+        text: "https://www.hsl.fi/hsl/uutiset/liikennetiedote/2023/01/linjoilla-711-721-ja-731-pienia-aikataulumuutoksia-16.1"
+        language: "fi"
+      }
+    }
+    header_text {
+      translation {
+        text: "Minor changes to the timetables for bus routes 711, 721 and 731 from 16 Jan"
+        language: "en"
+      }
+      translation {
+        text: "Pieni\303\244 muutoksia linjojen 711, 721 ja 731 aikatauluihin 16.1. alkaen."
+        language: "fi"
+      }
+      translation {
+        text: "Sm\303\245 justeringar i tidtabeller f\303\266r linjer 711, 721 och 731 fr\303\245n 16.1."
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "Minor changes to the timetables for bus routes 711, 721 and 731 from 16 Jan."
+        language: "en"
+      }
+      translation {
+        text: "Pieni\303\244 muutoksia linjojen 711, 721 ja 731 aikatauluihin 16.1. alkaen."
+        language: "fi"
+      }
+      translation {
+        text: "Sm\303\245 justeringar i tidtabeller f\303\266r linjer 711, 721 och 731 fr\303\245n 16.1."
+        language: "sv"
+      }
+    }
+    severity_level: INFO
+  }
+}
+entity {
+  id: "122524"
+  alert {
+    active_period {
+      start: 1672797600
+      end: 1674007200
+    }
+    informed_entity {
+      route_id: "1603"
+    }
+    cause: CONSTRUCTION
+    effect: DETOUR
+    url {
+      translation {
+        text: "https://www.hsl.fi/en/hsl/news/service-updates/2023/01/neigborhood-route-603-to-be-temporarily-diverted-due-to-the-closure-of-mestarintie-from-9-january"
+        language: "en"
+      }
+      translation {
+        text: "https://www.hsl.fi/hsl/uutiset/liikennetiedote/2023/01/lahibussin-603-reitti-muuttuu-valiaikaisesti-mestarintien-sulkemisen-takia-9.1.2023"
+        language: "fi"
+      }
+      translation {
+        text: "https://www.hsl.fi/sv/hrt/nyheter/liikennetiedotteet/2023/01/tillfallig-ruttforandring-pa-narbusslinje-603-nar-mastarvagen-stangs-9.1.2023"
+        language: "sv"
+      }
+    }
+    header_text {
+      translation {
+        text: "Neighborhood route 603, diversion route 9.1-30.4. in Oulunkyl\303\244"
+        language: "en"
+      }
+      translation {
+        text: "L\303\244hibussi 603 Poikkeusreitti 9.1.-30.4. Oulunkyl\303\244ss\303\244"
+        language: "fi"
+      }
+      translation {
+        text: "N\303\244rbusslinje 603, undantagsrutt 9.1.-30.4. i \303\205ggelby"
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "Buss route 603 will be temporarily diverted. The bus will not serve stops Kustaankartano, Kivalterintie and Mestarintie. Reason is water supply work and duration is from 9 January to 30 April."
+        language: "en"
+      }
+      translation {
+        text: "Bussilinja 603 kulkee poikkeusreitti\303\244. Kustaankartano, Kivalterintie ja Mestarintie j\303\244\303\244v\303\244t ajamatta. Syyn\303\244 Vesihuoltoty\303\266 ja arvioitu kesto on 9.1.2023-30.4.2023."
+        language: "fi"
+      }
+      translation {
+        text: "Busslinje 603 g\303\245r tillf\303\244llig ruttf\303\266r\303\244ndring. Linjen trafikerar inte Gustafsg\303\245rds, Gevaldigerv\303\244gen och M\303\244starv\303\244gen. Orsaken \303\244r vattenf\303\266rs\303\266rjningsarbete. Ber\303\244knas den 9 januari till den 30 april."
+        language: "sv"
+      }
+    }
+    severity_level: INFO
+  }
+}
+entity {
+  id: "122751"
+  alert {
+    active_period {
+      start: 1673200800
+      end: 1679621400
+    }
+    informed_entity {
+      route_id: "3001T"
+    }
+    informed_entity {
+      route_id: "3001R"
+    }
+    cause: MAINTENANCE
+    effect: DETOUR
+    url {
+      translation {
+        text: "https://www.hsl.fi/en/hsl/news/service-updates/2022/12/r-and-t-train-services-to-be-replaced-with-buses-between-kerava-and-jarvenpaa-on-weekday-nights-from-8-january-to-24-march"
+        language: "en"
+      }
+      translation {
+        text: "https://www.hsl.fi/hsl/uutiset/liikennetiedote/2022/12/r--ja-t-junien-liikenne-korvataan-busseilla-keravan-ja-jarvenpaan-valilla-arkioisin-8.1.24.3"
+        language: "fi"
+      }
+      translation {
+        text: "https://www.hsl.fi/sv/hrt/nyheter/liikennetiedotteet/2022/12/r--och-t-tagen-ersatts-med-bussar-mellan-kervo-och-traskanda-pa-vardagsnatter-8.124.3"
+        language: "sv"
+      }
+    }
+    header_text {
+      translation {
+        text: "R and T train services replaced with buses 969X between Kerava-J\303\244rvenp\303\244\303\244 on Sun to Thu nights from 8 Jan to 24 March"
+        language: "en"
+      }
+      translation {
+        text: "R- ja T-junien liikenne korvataan busseilla 969X Keravan ja J\303\244rvenp\303\244\303\244n v\303\244lill\303\244 su-pe v\303\244lisin\303\244 \303\266in\303\244 8.1.\342\200\22324.3."
+        language: "fi"
+      }
+      translation {
+        text: "R- och T-t\303\245gen ers\303\244tts med bussar 969X mellan Kervo och Tr\303\244sk\303\244nda p\303\245 n\303\244tterna mellan s\303\266n-fre 8.1\342\200\22324.3"
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "R and T train services replaced with buses 969X between Kerava-J\303\244rvenp\303\244\303\244 on Sun to Thu nights at 00.30\342\200\22303.30 8 Jan-24 March. More info from the Journey Planner."
+        language: "en"
+      }
+      translation {
+        text: "R- ja T-junien liikenne korvataan busseilla 969X Kerava-J\303\244rvenp\303\244\303\244 v\303\244lill\303\244 su-pe v\303\244lisin\303\244 \303\266in\303\244 8.1.\342\200\22324.3. klo 0.30\342\200\2233.30. Lis\303\244tiedot Reittioppaasta."
+        language: "fi"
+      }
+      translation {
+        text: "R- och T-t\303\245gen ers\303\244tts med bussar 969X mellan Kervo-Tr\303\244sk\303\244nda p\303\245 n\303\244tterna mellan s\303\266n-fre 8.1\342\200\22324.3 kl. 0.30\342\200\2233.30. Till\303\244gsinfo fr\303\245n Reseplaneraren."
+        language: "sv"
+      }
+    }
+    severity_level: WARNING
+  }
+}
+entity {
+  id: "123505"
+  alert {
+    active_period {
+      start: 1673341200
+      end: 1673645400
+    }
+    informed_entity {
+      route_id: "2111T"
+    }
+    informed_entity {
+      stop_id: "2232238"
+    }
+    informed_entity {
+      route_id: "2111"
+    }
+    cause: OTHER_CAUSE
+    effect: NO_EFFECT
+    url {
+      translation {
+        text: "https://www.hsl.fi/en/hsl/news/service-updates/2022/10/pysakki-hauenkallio-hauenkalliontiella-on-poissa-kaytosta-7.11.23.12"
+        language: "en"
+      }
+      translation {
+        text: "https://www.hsl.fi/hsl/uutiset/liikennetiedote/2022/10/pysakki-hauenkallio-hauenkalliontiella-on-poissa-kaytosta-7.11.23.12"
+        language: "fi"
+      }
+      translation {
+        text: "https://www.hsl.fi/sv/hrt/nyheter/liikennetiedotteet/2022/10/hallplats-gaddberget-pa-gaddbergsvagen-indragen-7.1123.12"
+        language: "sv"
+      }
+    }
+    header_text {
+      translation {
+        text: "Bus stop Hauenkallio E2365 until 1 Mars. The closest stop is Hauenkulma E2367."
+        language: "en"
+      }
+      translation {
+        text: "Pys\303\244kki Hauenkallio E2365 on poissa k\303\244yt\303\266st\303\244 1.3. asti. Korvaava pys\303\244kki on Hauenkulma E2367."
+        language: "fi"
+      }
+      translation {
+        text: "H\303\245llplatsen G\303\244ddberget E2365 \303\244r ur bruk till 1.3. Ers\303\244ttande h\303\245llplatts \303\244r G\303\244ddh\303\266rnet E2367."
+        language: "sv"
+      }
+    }
+    description_text {
+      translation {
+        text: "Bus stop Hauenkallio E2365 until 1 Mars. The closest stop is Hauenkulma E2367."
+        language: "en"
+      }
+      translation {
+        text: "Pys\303\244kki Hauenkallio E2365 on poissa k\303\244yt\303\266st\303\244 1.3. asti. Korvaava pys\303\244kki on Hauenkulma E2367."
+        language: "fi"
+      }
+      translation {
+        text: "H\303\245llplatsen G\303\244ddberget E2365 \303\244r ur bruk till 1.3. Ers\303\244ttande h\303\245llplatts \303\244r G\303\244ddh\303\266rnet E2367."
+        language: "sv"
+      }
+    }
+    severity_level: INFO
+  }
+}

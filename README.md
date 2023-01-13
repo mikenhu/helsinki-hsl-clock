@@ -80,7 +80,8 @@ It took about 18 hours, and unfortunately you will need support material. Handil
     * `cd tfgm-tram-clock`
 * Install required libraries (this is done using sudo because the screen won't work unless you run the script as root)
     * If you're on a fresh install, you probably won't have pip installed so run this first: `sudo apt install python3-pip`
-    * Then this: `sudo pip3 install -r requirements.txt`
+    * Then this: `sudo pip3 install -r requirements.txt pygame==2.1.2 requests==2.27.1 gtfs-realtime-bindings`
+    * Then this: `sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0`
 * You can now configure your config file with your own details. Run these commands:
     * `mv config.ini.sample config.ini`
     * `nano config.ini`
