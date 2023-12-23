@@ -43,7 +43,7 @@ class Hyperpixel2r:
         self._colour = (255, 0, 255)
 
         # Load the image and create img object
-        self._img = pygame.image.load("double-tram.png")
+        self._img = pygame.image.load("imgs/double-tram.png")
         self._img = pygame.transform.scale(self._img, (1050 / 6, 367 / 6))
         self._img = self._img.convert_alpha()
 
@@ -171,7 +171,7 @@ class Hyperpixel2r:
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
         # The number here will change the font size
-        game_font = pygame.font.Font("train-font.ttf", 50)
+        game_font = pygame.font.Font("/font/train-font.ttf", 50)
         font_colour = (250, 250, 0)
 
         return game_font, font_colour

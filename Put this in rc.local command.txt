@@ -1,0 +1,1 @@
+bash metro.sh &>/dev/null
