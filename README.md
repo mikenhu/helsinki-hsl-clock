@@ -75,11 +75,11 @@ Great thanks to Edd @eddible for the initial project.
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
 * That's it for the software. You can run the metro clock as is. Or...
 
-## Control backlight via Home Assistant
+### Control backlight via Home Assistant
 
 Having the display on all the time is bad, I decided to integrate the metro clock into my home assistant setup. In HA, you can execute commands to control the Pi with command line and shell command integrations.
 
-### Connect your HA to the Pi
+#### Connect your HA to the Pi
 
 * SSH into your HA host `ssh root@homeassistant.local` or you can use the Terminal add-on on HA.
 * Create the folder `mkdir /config/.ssh`.
@@ -88,7 +88,7 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 * Copy public key to the Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[IP]`
 * Try to ssh into the Pi from your HA and see if it works without a login.
 
-### Create the switches in HA
+#### Create the switches in HA
 
 Copy my config below and make it match your network setup.
 
