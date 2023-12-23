@@ -1,0 +1,18 @@
+{
+  "0": {
+    "Destination": "Vuosari",
+    "Coming": 4,
+    "Next": 11,
+    "Message": [
+      "The metro will operate two hours longer than usual on New Year\u2019s Eve, 31 December. (30/12/2022 05:00 - 01/01/2023 01:30)"
+    ]
+  },
+  "1": {
+    "Destination": "Kivenlahti",
+    "Coming": 5,
+    "Next": 12,
+    "Message": [
+      "The metro will operate two hours longer than usual on New Year\u2019s Eve, 31 December. (30/12/2022 05:00 - 01/01/2023 01:30)"
+    ]
+  }
+}
