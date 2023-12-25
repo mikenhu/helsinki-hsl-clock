@@ -49,7 +49,7 @@ class Hyperpixel2r:
             img = pygame.transform.scale(img, size)
             return img.convert_alpha()
 
-        size_single = (512 // 6, 367 // 6)
+        size_single = (512 // 6, 358 // 6)
         size_double = (1050 // 6, 367 // 6)
 
         self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
@@ -186,7 +186,7 @@ class Hyperpixel2r:
 
         return game_font, font_colour
 
-    def scrolling_object_loop(self, message, scroll_speed=3, clear_color=(0, 0, 0)):
+    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0)):
         
         # Image surface size
         BAND_WIDTH = 480
@@ -257,7 +257,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop(service_message)
+            self.scrolling_object_loop()
 
             if self._rawfb:
                 self._updatefb()
