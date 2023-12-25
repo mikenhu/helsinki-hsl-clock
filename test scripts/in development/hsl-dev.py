@@ -17,54 +17,18 @@ route_id_metro = "31M"
 trip_update_url = "https://realtime.hsl.fi/realtime/trip-updates/v2/hsl"
 service_alerts_url = "https://realtime.hsl.fi/realtime/service-alerts/v2/hsl"
 
-class HSL:
-    def __init__(self, trip_update_url, service_alerts_url):
+def fetch_feed(url):
+    feed = gtfs_realtime_pb2.FeedMessage()
+    response = urllib.request.urlopen(url)
+    feed.ParseFromString(response.read())
+    return feed
+
+class HSL_Trip_Update:
+    def __init__(self, trip_update_url):
         self.trip_update_url = trip_update_url
-        self.service_alerts_url = service_alerts_url
-    
-    def fetch_feed(self, url):
-        feed = gtfs_realtime_pb2.FeedMessage()
-        response = urllib.request.urlopen(url)
-        feed.ParseFromString(response.read())
-        return feed
 
     def get_metro_feed(self):
-        return self.fetch_feed(self.trip_update_url)
-
-    def get_service_alerts(self):
-        return self.fetch_feed(self.service_alerts_url)
-
-    def metro_alerts(self):
-        # fetch the service alerts feed
-        feed = self.get_service_alerts()
-        # create a set to store unique alert messages
-        alert_messages = set()
-
-        # iterate over each entity in the feed
-        for entity in feed.entity:
-            # check if the entity has a field named 'alert'
-            if entity.HasField('alert'):
-                # iterate over the informed entities in the alert
-                for informed_entity in entity.alert.informed_entity:
-                    # get the route id of the informed entity
-                    route_id = informed_entity.route_id
-                    # check if the route id is part of the metro routes
-                    if route_id.startswith(route_id_metro):
-                        # get the start time of the active period for the alert and format it as a string
-                        start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start).strftime('%d/%m/%Y %H:%M')
-                        # get the end time of the active period for the alert and format it as a string
-                        end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end).strftime('%d/%m/%Y %H:%M')
-                        # iterate over the translations of the description text for the alert
-                        for translation in entity.alert.description_text.translation:
-                            # check if the language of the translation is English
-                            if translation.language == 'en':          
-                                # create the alert message by combining the translation text, start time, and end time
-                                alert = (f"{translation.text} ({start_time} - {end_time})")
-                                # add the alert message to the set of alert messages
-                                alert_messages.add(alert)
-
-        # return a list of the unique alert messages
-        return (list(alert_messages))
+        return fetch_feed(self.trip_update_url)
 
     def metro_status(self):
         feed = self.get_metro_feed()
@@ -102,12 +66,9 @@ class HSL:
             for stop_id, wait_times in stop_times.items()
         }
 
-        # Get alert message
-        alert = self.metro_alerts()
-
         # Create result dictionary
         result = {
-            i: { 'Destination': dest, 'Coming': wait_times[0], 'Next': wait_times[1], 'Message': alert}
+            i: { 'Destination': dest, 'Coming': wait_times[0], 'Next': wait_times[1] }
             for i, (dest, wait_times) in enumerate(stop_times.items())
         }
 
@@ -129,9 +90,56 @@ class HSL:
         with open('stop_times.json', 'w') as f:
             f.write(data)
 
+class HSL_Service_Alert:
+    def __init__(self, service_alerts_url):
+        self.service_alerts_url = service_alerts_url
 
-hsl = HSL(trip_update_url, service_alerts_url)
+    def get_service_alerts(self):
+        return fetch_feed(self.service_alerts_url)
+
+    def metro_alerts(self):
+        # fetch the service alerts feed
+        feed = self.get_service_alerts()
+        # create a set to store unique alert messages
+        alert_messages = set()
+
+        # iterate over each entity in the feed
+        for entity in feed.entity:
+            # check if the entity has a field named 'alert'
+            if entity.HasField('alert'):
+                # iterate over the informed entities in the alert
+                for informed_entity in entity.alert.informed_entity:
+                    # get the route id of the informed entity
+                    route_id = informed_entity.route_id
+                    # check if the route id is part of the metro routes
+                    if route_id.startswith(route_id_metro):
+                        # get the start time of the active period for the alert and format it as a string
+                        start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start).strftime('%d/%m/%Y %H:%M')
+                        # get the end time of the active period for the alert and format it as a string
+                        end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end).strftime('%d/%m/%Y %H:%M')
+                        # iterate over the translations of the description text for the alert
+                        for translation in entity.alert.description_text.translation:
+                            # check if the language of the translation is English
+                            if translation.language == 'en':          
+                                # create the alert message by combining the translation text, start time, and end time
+                                alert = (f"{translation.text} ({start_time} - {end_time})")
+                                # add the alert message to the set of alert messages
+                                alert_messages.add(alert)
+
+        # return a list of the unique alert messages
+        return (list(alert_messages))
+
+    # Print messages for testing
+    def print_metro_alert(self):
+        alert = self.metro_alerts()
+        print(alert)
+
+hsl = HSL_Trip_Update(trip_update_url)
 
 hsl.print_metro_status()
+
+hsl_alert = HSL_Service_Alert(service_alerts_url)
+
+hsl_alert.print_metro_alert()
 
 # hsl.print_metro_status_to_file()

@@ -8,7 +8,8 @@ import time
 import threading
 import configparser
 
-from hsl import HSL
+from hsl import HSL_Trip_Update
+from hsl import HSL_Service_Alert
 
 COMING = "Coming"
 NEXT = "Next"
@@ -43,9 +44,17 @@ class Hyperpixel2r:
         self._colour = (255, 0, 255)
 
         # Load the image and create img object
-        self._img = pygame.image.load("imgs/double-tram.png")
-        self._img = pygame.transform.scale(self._img, (1050 / 6, 367 / 6))
-        self._img = self._img.convert_alpha()
+        def load_and_scale_image(path, size):
+            img = pygame.image.load(path)
+            img = pygame.transform.scale(img, size)
+            return img.convert_alpha()
+
+        size = (1050 // 6, 367 // 6)
+
+        self._img_double = load_and_scale_image("imgs/double-tram.png", size)
+        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size)
+        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size)
+
 
     def _exit(self, sig, frame):
         self._running = False
@@ -171,12 +180,12 @@ class Hyperpixel2r:
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
         # The number here will change the font size
-        game_font = pygame.font.Font("/font/train-font.ttf", 50)
+        game_font = pygame.font.Font("font/train-font.ttf", 50)
         font_colour = (250, 250, 0)
 
         return game_font, font_colour
 
-    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0)):
+    def scrolling_object_loop(self, message, scroll_speed=3, clear_color=(0, 0, 0)):
         
         # Image surface size
         BAND_WIDTH = 480
@@ -199,8 +208,8 @@ class Hyperpixel2r:
             self.bottom_x = -180
 
         # Draw the scrolling image on the top and bottom of the screen
-        self.screen.blit(self._img, (self.top_x, self.top_y))
-        self.screen.blit(self._img, (self.bottom_x, self.bottom_y))
+        self.screen.blit(self._img_double, (self.top_x, self.top_y))
+        self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
     def display_update_thread(self, metro, game_font, font_colour, start_time):
         while self._running:
@@ -213,7 +222,9 @@ class Hyperpixel2r:
     def run(self):
         # Read the config file to get your API token and metro line
         config = get_config()
-        metro = HSL(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'], config['service_alerts_url'])
+        metro = HSL_Trip_Update(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'])
+        service_message = HSL_Service_Alert (config['service_alerts_url'])
+
         # Configure the font and colour
         game_font, font_colour = self.setup_fonts()
 
@@ -245,7 +256,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop()
+            self.scrolling_object_loop(service_message)
 
             if self._rawfb:
                 self._updatefb()
