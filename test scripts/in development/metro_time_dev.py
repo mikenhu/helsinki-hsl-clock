@@ -4,22 +4,18 @@ import os
 import sys
 import signal
 import pygame
-# import datetime
 import time
 import threading
 import configparser
 
-from hsl import HSL
+from hsl import HSL_Trip_Update
+from hsl import HSL_Service_Alert
 
 COMING = "Coming"
 NEXT = "Next"
 DESTINATION = "Destination"
+MESSAGE = "Message"
 
-# Set up the logger
-logPath = '/home/pi/Desktop/error.txt'
-if not os.path.exists(logPath):
-    open(logPath, 'w+').close()
-logging.basicConfig(filename=logPath, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.ERROR)
 
 # Credit to Pimoroni for the Hyperpixel2r class
 class Hyperpixel2r:
@@ -48,13 +44,18 @@ class Hyperpixel2r:
         self._colour = (255, 0, 255)
 
         # Load the image and create img object
-        self._img = pygame.image.load("double-tram.png")
-        # original_width, original_height = self._img.get_size()
-        # print(f'The original image was {original_width}x{original_height} pixels')
-        self._img = pygame.transform.scale(self._img, (1050 / 6, 367 / 6))
-        self._img = self._img.convert_alpha()
-        # new_width, new_height =  self._img.get_size()
-        # print(f'The scaled and alpha image is {new_width}x{new_height} pixels')
+        def load_and_scale_image(path, size):
+            img = pygame.image.load(path)
+            img = pygame.transform.scale(img, size)
+            return img.convert_alpha()
+
+        size_single = (512 // 6, 358 // 6)
+        size_double = (1050 // 6, 367 // 6)
+
+        self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
+        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
+        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
+
 
     def _exit(self, sig, frame):
         self._running = False
@@ -175,67 +176,81 @@ class Hyperpixel2r:
                     l = 270
                     r = top_row
 
-    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0), text='Scroll this extreme long text'):
-        
-        # Image surface size
-        BAND_WIDTH = 480
-        BAND_HEIGHT = 101
-
-        font = pygame.font.Font("train-font.ttf", 40)
-        text_surface = font.render(text, True, (250, 250, 0))
-
-        # Clear the top and bottom parts of the screen
-        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
-        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
-
-        # Update the position of the image
-        self.top_x -= scroll_speed
-        self.bottom_x += scroll_speed
-
-        # If the image has moved off the screen, reset its position
-        if self.top_x <- 100:
-            self.top_x = 480
-        if self.bottom_x > 480:
-            self.bottom_x = -180
-
-        # Draw the scrolling image on the top and bottom of the screen
-        # self.screen.blit(self._img, (self.top_x, self.top_y))
-        self.screen.blit(self._img, (self.bottom_x, self.bottom_y))
-
-        # If the text is not empty, update the position of the text surface and draw it on the screen
-        if text:
-            self.text_x -= scroll_speed*3
-            if self.text_x < -text_surface.get_width():
-                self.text_x = 480
-            self.screen.blit(text_surface, (self.text_x, self.text_y))
-        else:
-            self.screen.blit(self._img, (self.top_x, self.top_y))
-
-
     def setup_fonts(self):
         pygame.font.init()
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
         # The number here will change the font size
-        game_font = pygame.font.Font("train-font.ttf", 50)
+        game_font = pygame.font.Font("font/train-font.ttf", 50)
         font_colour = (250, 250, 0)
 
         return game_font, font_colour
+
+    def scrolling_object_loop(self, game_font, font_colour):
+            
+        # Image surface size
+        BAND_WIDTH = 480
+        BAND_HEIGHT = 101
+
+        # Define scrolling speed
+        scroll_speed=4
+
+        # Clear the top and bottom parts of the screen
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
+
+        # Update the position of the image
+        self.top_x += scroll_speed
+        self.bottom_x -= scroll_speed
+
+        # If the image has moved off the screen, reset its position
+        if self.top_x > BAND_WIDTH:
+            self.top_x = -180
+        if self.bottom_x < -150:
+            self.bottom_x = BAND_WIDTH
+
+        # Draw the scrolling image on the top and bottom of the screen
+        self.screen.blit(self._img_double, (self.top_x, self.top_y))
+        self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
+
+        # Render the text you want to display
+        text_surface = render_font(game_font, "Hello", font_colour)  # Adjust text and color
+
+        # Calculate the X-coordinate for the text between the images
+        text_x = self.bottom_x + self._img_left.get_width() + 10  # Adjust padding if needed
+        text_y = self.bottom_y + (self._img_left.get_height() - text_surface.get_height()) // 2
+
+        # Draw the text onto the screen surface
+        self.screen.blit(text_surface, (text_x, text_y))
+
+        # Calculate the X-coordinate for the second image (_img_right) next to the text
+        padding_between_text_and_image = 10  # Adjust this value as needed
+        second_image_x = text_x + text_surface.get_width() + padding_between_text_and_image
+
+        # Drawing the second image (_img_right) next to the text
+        self.screen.blit(self._img_right, (second_image_x, self.bottom_y))
 
 
     def display_update_thread(self, metro, game_font, font_colour, start_time):
         while self._running:
             elapsed_time = time.perf_counter() - start_time
-            # Time to wait until checking for the API again
             if elapsed_time > 30:
                 start_time = time.perf_counter()
                 display_times(metro, game_font, font_colour)
 
+    def display_update_thread_scroll(self, message, game_font, font_colour):
+        while self._running:
+            elapsed_time = time.perf_counter() - start_time
+            if elapsed_time > 3600:
+                start_time = time.perf_counter()
+                display_alert(message, game_font, font_colour)
 
     def run(self):
         # Read the config file to get your API token and metro line
         config = get_config()
-        metro = HSL(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'], config['service_alerts_url'])
+        metro = HSL_Trip_Update(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'])
+        message = HSL_Service_Alert (config['service_alerts_url'])
+
         # Configure the font and colour
         game_font, font_colour = self.setup_fonts()
 
@@ -243,24 +258,22 @@ class Hyperpixel2r:
         self.top_x = 480 # start off the screen to the right
         self.top_y = 40
 
-        self.text_x = 480
-        self.text_y = 40
-
         self.bottom_x = -180
         self.bottom_y = 390
 
         self._running = True
         signal.signal(signal.SIGINT, self._exit)
 
-        # Record the current time
-        # start_time = datetime.datetime.now()
         start_time = time.perf_counter()
         
-        # # Create the Clock object
+        # Create the Clock object
         clock = pygame.time.Clock()
 
         display_update_thread = threading.Thread(target=self.display_update_thread, args=(metro, game_font, font_colour, start_time))
         display_update_thread.start()
+
+        display_update_thread_scroll = threading.Thread(target=self.display_update_thread_scroll, args=(message, game_font, font_colour, start_time))
+        display_update_thread_scroll.start()
         
         while self._running:
             for event in pygame.event.get():
@@ -272,7 +285,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop()
+            self.scrolling_object_loop(game_font, font_colour)
 
             if self._rawfb:
                 self._updatefb()
@@ -283,109 +296,70 @@ class Hyperpixel2r:
                 pygame.event.pump()
 
         display_update_thread.join()
+        display_update_thread_scroll.join()
         pygame.quit()
         sys.exit(0)
 
 def display_times(metro, game_font, font_colour):
 
     statuses = metro.metro_status()
+
+    if not statuses:
+        return False
+
+    results = {
+        'first_metro_incoming': check_for_value(statuses[0], COMING),
+        'second_metro_incoming': check_for_value(statuses[1], COMING),
+        'first_metro_next': check_for_value(statuses[0], NEXT),
+        'second_metro_next': check_for_value(statuses[1], NEXT),
+        'first_metro_dest': check_for_value(statuses[0], DESTINATION),
+        'second_metro_dest': check_for_value(statuses[1], DESTINATION)
+    }
+
+    truncate = 6
+    dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
+            for result in [results['first_metro_dest'], results['second_metro_dest']]]
+    first_metro_dest, second_metro_dest = [f"{dest}  " for dest in dests]
+
+    first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
+    second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
+    first_metro_text = "Next"
+    second_metro_text = "Next"
+    first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
+    second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
+
+    first_metro_dest = render_font(game_font, first_metro_dest, font_colour)
+    second_metro_dest = render_font(game_font, second_metro_dest, font_colour)
+    first_metro_incoming = render_font(game_font, first_metro_incoming, font_colour)
+    second_metro_incoming = render_font(game_font, second_metro_incoming, font_colour)
+    first_metro_text = render_font(game_font, first_metro_text, font_colour)
+    second_metro_text = render_font(game_font, second_metro_text, font_colour)
+    first_metro_next = render_font(game_font, first_metro_next, font_colour)
+    second_metro_next = render_font(game_font, second_metro_next, font_colour)
+        
     # Clear screen before rendering new data
     pygame.draw.rect(display.screen, (0, 0, 0), (0, 102, 480, 287))
 
-    if statuses:
-        first_metro_wait = check_for_value(statuses[0], COMING)
-        second_metro_wait = check_for_value(statuses[1], COMING)
+    display.blit_screen(
+        [
+            {"item": first_metro_dest, "type": "text"},
+            # {"item": first_metro_header, "type": "text"},
+            {"item": first_metro_incoming, "type": "text"},
+            {"item": first_metro_text, "type": "text"},
+            {"item": first_metro_next, "type": "text"},
+            # {"item": first_metro_image, "type": "image"},
 
-        # first_metro_size = check_for_value(statuses[0], CARRIAGES)
-        # second_metro_size = check_for_value(statuses[1], CARRIAGES)
+            {"item": second_metro_dest, "type": "text"},
+            # {"item": second_metro_header, "type": "text"},
+            {"item": second_metro_incoming, "type": "text"},
+            {"item": second_metro_text, "type": "text"},
+            {"item": second_metro_next, "type": "text"},
+            # {"item": second_metro_image, "type": "image"},
+        ]
+    )
 
-        first_metro_wait_next = check_for_value(statuses[0], NEXT)
-        second_metro_wait_next = check_for_value(statuses[1], NEXT)
-
-        first_metro_dest = check_for_value(statuses[0], DESTINATION)
-        second_metro_dest = check_for_value(statuses[1], DESTINATION)
-
-        # This is how long the strings are shortened to so they fit on the screen. 7 is a reasonable compromise.
-        # It would be great to make them scroll in the allocated space, but I haven't figured out how to do this yet!
-        truncate = 6
-
-        if len(second_metro_dest) > truncate:
-            second_metro_dest = second_metro_dest[:truncate] + ".."
-        if len(first_metro_dest) > truncate:
-            first_metro_dest = first_metro_dest[:truncate] + ".."
-
-        # first_metro_header = render_font(game_font, "IN", font_colour)
-        # second_metro_header = render_font(game_font, "Next", font_colour)
-
-        first_metro_dest = render_font(game_font, first_metro_dest, font_colour)
-        second_metro_dest = render_font(game_font, second_metro_dest, font_colour)
-
-        first_metro_coming = render_font(
-            game_font, "{} {}".format(first_metro_wait, min_or_mins(first_metro_wait)), font_colour
-        )
-        second_metro_coming = render_font(
-            game_font, "{} {}".format(second_metro_wait, min_or_mins(second_metro_wait)), font_colour
-        )
-
-        first_metro_text = render_font(game_font, "Next", font_colour)
-        second_metro_text = render_font(game_font, "Next", font_colour)
-
-        first_metro_next = render_font(
-            game_font, "{} {}".format(first_metro_wait_next, min_or_mins(first_metro_wait_next)), font_colour
-        )
-        second_metro_next = render_font(
-            game_font, "{} {}".format(second_metro_wait_next, min_or_mins(second_metro_wait_next)), font_colour
-        )
-
-        # This reduces the size of the metro icon to fit nicely.
-        # scale_factor = 8
-
-        # Credit for the icon source: https://www.flaticon.com/free-icons/train
-        # single_metro_img = pygame.image.load("imgs/single-metro.png")
-        # single_metro_img = pygame.transform.scale(
-        #     single_metro_img, (512 / scale_factor, 367 / scale_factor)
-        # )
-
-        # double_metro_img = pygame.image.load("imgs/double-metro.png")
-        # double_metro_img = pygame.transform.scale(
-        #     double_metro_img, (1050 / scale_factor, 367 / scale_factor)
-        # )
-
-        # if first_metro_size == "Single":
-        #     first_metro_image = single_metro_img
-        # elif first_metro_size == "Double":
-        #     first_metro_image = double_metro_img
-        # else:
-        #     first_metro_image = None
-
-        # if second_metro_size == "Single":
-        #     second_metro_image = single_metro_img
-        # elif second_metro_size == "Double":
-        #     second_metro_image = double_metro_img
-        # else:
-        #     second_metro_image = None
-
-        display.blit_screen(
-            [
-                {"item": first_metro_dest, "type": "text"},
-                # {"item": first_metro_header, "type": "text"},
-                {"item": first_metro_coming, "type": "text"},
-                {"item": first_metro_text, "type": "text"},
-                {"item": first_metro_next, "type": "text"},
-                # {"item": first_metro_image, "type": "image"},
-
-                {"item": second_metro_dest, "type": "text"},
-                # {"item": second_metro_header, "type": "text"},
-                {"item": second_metro_coming, "type": "text"},
-                {"item": second_metro_text, "type": "text"},
-                {"item": second_metro_next, "type": "text"},
-                # {"item": second_metro_image, "type": "image"},
-            ]
-        )
-
-        return True
-    else:
-        return False
+def display_alert(message):
+    return message.service_alert()
 
 # Fix minutes display
 def min_or_mins(wait_time):
@@ -425,9 +399,5 @@ def get_config():
 
     return configured_values
 
-try:
-    display = Hyperpixel2r()
-    display.run()
-except Exception as e:
-    # Log the error
-    logging.error(e)
+display = Hyperpixel2r()
+display.run()
