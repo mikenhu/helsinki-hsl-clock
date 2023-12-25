@@ -49,11 +49,12 @@ class Hyperpixel2r:
             img = pygame.transform.scale(img, size)
             return img.convert_alpha()
 
-        size = (1050 // 6, 367 // 6)
+        size_single = (512 // 6, 367 // 6)
+        size_double = (1050 // 6, 367 // 6)
 
-        self._img_double = load_and_scale_image("imgs/double-tram.png", size)
-        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size)
-        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size)
+        self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
+        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
+        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
 
 
     def _exit(self, sig, frame):
