@@ -171,7 +171,7 @@ class Hyperpixel2r:
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
         # The number here will change the font size
-        game_font = pygame.font.Font("/font/train-font.ttf", 50)
+        game_font = pygame.font.Font("font/train-font.ttf", 50)
         font_colour = (250, 250, 0)
 
         return game_font, font_colour
