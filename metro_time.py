@@ -215,10 +215,10 @@ class Hyperpixel2r:
     def display_update_thread(self, metro, game_font, font_colour, start_time):
         while self._running:
             elapsed_time = time.perf_counter() - start_time
-            if elapsed_time > 30:
+            if elapsed_time >= 0:  # To execute immediately and every 30 seconds
                 start_time = time.perf_counter()
                 display_times(metro, game_font, font_colour)
-
+            time.sleep(30 - elapsed_time % 30)  # Adjusts for any extra time elapsed
 
     def run(self):
         # Read the config file to get your API token and metro line

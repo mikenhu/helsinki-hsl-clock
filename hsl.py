@@ -107,7 +107,8 @@ class HSL_Trip_Update:
 
 class HSL_Service_Alert:
 
-    def __init__(self, service_alerts_url):
+    def __init__(self, route_id_metro, service_alerts_url):
+        self.route_id_metro = route_id_metro
         self.service_alerts_url = service_alerts_url
 
     def get_service_alert(self): 
@@ -129,36 +130,34 @@ class HSL_Service_Alert:
     def service_alert(self):
         # fetch the service alerts feed
         feed = self.get_service_alert()
+        alert_message = set()
 
-        # create a generator to yield unique alert messages
-        def alert_message(self):
-            # iterate over each entity in the feed
-            for entity in feed.entity:
-                # check if the entity has a field named 'alert'
-                if entity.HasField('alert'):
-                    # iterate over the informed entities in the alert
-                    for informed_entity in entity.alert.informed_entity:
-                        # get the route id of the informed entity
-                        route_id = informed_entity.route_id
-                        # check if the route id is part of the metro routes
-                        if route_id.startswith(self.route_id_metro):
-                            # convert the start and end times to datetime objects
-                            start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
-                            end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
-                            # format the start and end times as a single string
-                            active_period_str = f"({start_time:%d/%m/%Y %H:%M} - {end_time:%d/%m/%Y %H:%M})"
-                            # iterate over the translations of the description text for the alert
-                            for translation in entity.alert.description_text.translation:
-                                # check if the language of the translation is English
-                                if translation.language == 'en':
-                                    # create the alert message by combining the translation text and the active period string
-                                    alert = f"{translation.text} {active_period_str}"
-                                    # yield the alert message
-                                    yield alert
-                                    # exit the loop early since we have found the English translation we need
-                                    break
-                            # exit the loop early since we have found an informed entity whose route id starts with the correct prefix
-                            break
+        # iterate over each entity in the feed
+        for entity in feed.entity:
+            # check if the entity has a field named 'alert'
+            if entity.HasField('alert'):
+                # iterate over the informed entities in the alert
+                for informed_entity in entity.alert.informed_entity:
+                    # get the route id of the informed entity
+                    route_id = informed_entity.route_id
+                    # check if the route id is part of the metro routes
+                    if route_id.startswith(self.route_id_metro):
+                        # convert the start and end times to datetime objects
+                        start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
+                        end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
+                        # format the start and end times as a single string
+                        active_period_str = f"({start_time:%d/%m/%Y %H:%M} - {end_time:%d/%m/%Y %H:%M})"
+                        # iterate over the translations of the description text for the alert
+                        for translation in entity.alert.description_text.translation:
+                            # check if the language of the translation is English
+                            if translation.language == 'en':
+                                # create the alert message by combining the translation text and the active period string
+                                alert = f"{translation.text} {active_period_str}"
+                                # add the alert message
+                                alert_message.add(alert)
+                                # exit the loop early since we have found the English translation we need
+                                break
+                        # exit the loop early since we have found an informed entity whose route id starts with the correct prefix
+                        break
 
-        # return the generator object if there are any alert messages, otherwise return None
-        return (alert_message() if any(alert_message()) else "")
+        return alert_message
