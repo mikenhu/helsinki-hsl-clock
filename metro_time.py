@@ -218,8 +218,10 @@ class Hyperpixel2r:
             text_surface = render_font(game_font, self.alert_result, font_colour)
             text_width = text_surface.get_width()
 
-            text_x = self.bottom_x + self._img_left.get_width() + 10
-            text_y = self.bottom_y + 10
+            object_padding = 10 # Adjust if needed
+
+            text_x = self.bottom_x + self._img_left.get_width() + object_padding
+            text_y = self.bottom_y + object_padding
 
             text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
 
@@ -228,7 +230,7 @@ class Hyperpixel2r:
 
             self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
             self.screen.blit(text_surface, text_rect)
-            self.screen.blit(self._img_right, (text_x + text_width + 10, self.bottom_y))
+            self.screen.blit(self._img_right, (text_x + text_width + object_padding, self.bottom_y))
         else:
             if self.bottom_x < -150:
                 self.bottom_x = BAND_WIDTH
