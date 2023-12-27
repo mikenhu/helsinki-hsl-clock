@@ -9,6 +9,7 @@ import threading
 import configparser
 import queue
 
+from hsl import Transit_Config
 from hsl import HSL_Trip_Update
 from hsl import HSL_Service_Alert
 
@@ -149,6 +150,7 @@ class Hyperpixel2r:
     # After the blit call, the value of r is increased by spacer, and the value of row is incremented by 1. 
     # If row is equal to 4, the values of row and l are reset to 0 and 270, respectively, and r is set to top_row again.
     #  This process continues until all dictionaries in items have been processed. The blit_screen function does not return any value.
+    
     def blit_screen(self, items):
         # Set the size of the space between items and the position of the first item
         spacer = 70
@@ -188,7 +190,7 @@ class Hyperpixel2r:
 
         return game_font, font_colour
 
-    def scrolling_object_loop(self, alert_queue, game_font, font_colour, scroll_speed=3, clear_color=(0, 0, 0)):
+    def scrolling_objects_loop(self, alert_queue, game_font, font_colour, scroll_speed=3, clear_color=(0, 0, 0)):
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
 
@@ -198,30 +200,23 @@ class Hyperpixel2r:
             if self.alert_result != new_alert_data:
                 self.alert_result = new_alert_data
 
-        # Clear top and bottom bands
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
 
-        # Define scrolling speed
         self.top_x += scroll_speed
         self.bottom_x -= scroll_speed
 
-        # Blit the top band
         if self.top_x > BAND_WIDTH:
             self.top_x = -180
 
         self.screen.blit(self._img_double, (self.top_x, self.top_y))
 
-        # Blit the bottom band
-        # If there is alert, show text sandwiched two metros. Otherwise show the double metro
         if isinstance(self.alert_result, str) and self.alert_result is not None:
             text_surface = render_font(game_font, self.alert_result, font_colour)
             text_width = text_surface.get_width()
 
-            object_padding = 10 # Adjust if needed
-
-            text_x = self.bottom_x + self._img_left.get_width() + object_padding
-            text_y = self.bottom_y + object_padding
+            text_x = self.bottom_x + self._img_left.get_width() + 10
+            text_y = self.bottom_y + 10
 
             text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
 
@@ -230,7 +225,7 @@ class Hyperpixel2r:
 
             self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
             self.screen.blit(text_surface, text_rect)
-            self.screen.blit(self._img_right, (text_x + text_width + object_padding, self.bottom_y))
+            self.screen.blit(self._img_right, (text_x + text_width + 10, self.bottom_y))
         else:
             if self.bottom_x < -150:
                 self.bottom_x = BAND_WIDTH
@@ -252,13 +247,15 @@ class Hyperpixel2r:
                 # display_alert(alert)
                 alert_message = display_alert(alert)
                 alert_queue.put(alert_message)  # Put the alert into the queue
-            time.sleep(60 - elapsed_time % 60)  # Adjusts for any extra time elapsed
+            time.sleep(300 - elapsed_time % 300)  # Adjusts for any extra time elapsed
 
     def run(self):
         # Read the config file to get your API token and metro line
         config = get_config()
-        metro = HSL_Trip_Update(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'])
-        service_message = HSL_Service_Alert (config['route_id_metro'], config['service_alerts_url'])
+        transit_config = Transit_Config(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'],  config['service_alerts_url'])
+
+        metro = HSL_Trip_Update(transit_config)
+        service_message = HSL_Service_Alert(transit_config)
 
         # Configure the font and colour
         game_font, font_colour = self.setup_fonts()
@@ -297,7 +294,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop(alert_queue, game_font, font_colour)
+            self.scrolling_objects_loop(alert_queue, game_font, font_colour)
 
             if self._rawfb:
                 self._updatefb()
@@ -376,8 +373,7 @@ def display_alert(metro):
 
     if not message:
         return ""
-    
-    print(message)
+
     return message
 
 # Fix minutes display

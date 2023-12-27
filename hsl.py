@@ -7,57 +7,44 @@ import socket
 from google.transit import gtfs_realtime_pb2
 
 def fetch_feed(url):
-    with requests.Session() as session:
-        while True:
-            try:
+    MAX_RETRIES = 3
+    for _ in range(MAX_RETRIES):
+        try:
+            with requests.Session() as session:
                 feed = gtfs_realtime_pb2.FeedMessage()
                 response = session.get(url)
                 feed.ParseFromString(response.content)
                 return feed
-            except requests.exceptions.RequestException as e:
-                # If there was a network error, print an error message and try again
-                if isinstance(e.reason, socket.timeout):
-                    print(f"Error fetching feed: {e}")
-                    print("Trying again in 30 seconds...")
-                    time.sleep(30)
-                else:
-                    # If there was a different error, print an error message and return an empty feed
-                    print(f"Error fetching feed: {e}")
-                    return gtfs_realtime_pb2.FeedMessage()
-            except Exception as e:
-                # If there was a different error, print an error message and return an empty feed
-                print(f"Error parsing feed: {e}")
-                return gtfs_realtime_pb2.FeedMessage()
+        except requests.exceptions.RequestException as e:
+            if isinstance(e.reason, socket.timeout):
+                print(f"Error fetching feed: {e}. Retrying...")
+            else:
+                print(f"Error fetching feed: {e}.")
+            time.sleep(30)
+        except Exception as e:
+            print(f"Error parsing feed: {e}.")
+            return gtfs_realtime_pb2.FeedMessage()
+    print("Exceeded maximum retries. Returning empty feed.")
+    return gtfs_realtime_pb2.FeedMessage()
 
-class HSL_Trip_Update:
-
-    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url):
+class Transit_Config:
+    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url):
         self.stop_id_with_names = stop_id_with_names
         self.route_id_metro = route_id_metro
         self.trip_update_url = trip_update_url
+        self.service_alerts_url = service_alerts_url
 
-    def get_metro_feed(self):
-        with requests.Session() as session:
-            while True:
-                try:
-                    feed = fetch_feed(self.trip_update_url)
-                    return feed
-                except requests.exceptions.RequestException as e:
-                    # If there was a network error, print an error message and try again
-                    print(f"Error fetching metro feed: {e}")
-                    print("Trying again in 30 seconds...")
-                    time.sleep(30)
-                except Exception as e:
-                    # If there was a different error, print an error message and return an empty feed
-                    print(f"Error parsing metro feed: {e}")
-                    return gtfs_realtime_pb2.FeedMessage()
+class HSL_Trip_Update:
 
+    def __init__(self, transit_config):
+        self.transit_config = transit_config
+        
     def metro_status(self):
-        feed = self.get_metro_feed()
+        feed = fetch_feed(self.transit_config.trip_update_url)
         current_time = datetime.datetime.now()
 
         # Create a dictionary mapping stop IDs to wait times
-        stop_id_with_names = json.loads(self.stop_id_with_names)
+        stop_id_with_names = json.loads(self.transit_config.stop_id_with_names)
         # Create a dictionary with the stop names as keys and an empty list as the value for each key
         stop_times = {stop_id_name: [] for stop_id_name in stop_id_with_names.values()}
         # Iterate through the entities in the feed message
@@ -107,30 +94,13 @@ class HSL_Trip_Update:
 
 class HSL_Service_Alert:
 
-    def __init__(self, route_id_metro, service_alerts_url):
-        self.route_id_metro = route_id_metro
-        self.service_alerts_url = service_alerts_url
-
-    def get_service_alert(self): 
-        with requests.Session() as session:
-            while True:
-                try:
-                    feed = fetch_feed(self.service_alerts_url)
-                    return feed
-                except requests.exceptions.RequestException as e:
-                    # If there was a network error, print an error message and try again
-                    print(f"Error fetching service alerts feed: {e}")
-                    print("Trying again in 30 seconds...")
-                    time.sleep(30)
-                except Exception as e:
-                    # If there was a different error, print an error message and return an empty feed
-                    print(f"Error parsing service alerts feed: {e}")
-                    return gtfs_realtime_pb2.FeedMessage()
+    def __init__(self, transit_config):
+        self.transit_config = transit_config
 
     def service_alert(self):
         # fetch the service alerts feed
-        feed = self.get_service_alert()
-        alert_message = set()
+        feed = fetch_feed(self.transit_config.service_alerts_url)
+        alert_message = ""
 
         # iterate over each entity in the feed
         for entity in feed.entity:
@@ -141,7 +111,7 @@ class HSL_Service_Alert:
                     # get the route id of the informed entity
                     route_id = informed_entity.route_id
                     # check if the route id is part of the metro routes
-                    if route_id.startswith(self.route_id_metro):
+                    if route_id.startswith(self.transit_config.route_id_metro):
                         # convert the start and end times to datetime objects
                         start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
                         end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
@@ -153,9 +123,12 @@ class HSL_Service_Alert:
                             if translation.language == 'en':
                                 # create the alert message by combining the translation text and the active period string
                                 alert_message = f"{translation.text} {active_period_str}"
+                                # yield the alert message
+                                # alert_message.add(alert)
                                 # exit the loop early since we have found the English translation we need
                                 break
                         # exit the loop early since we have found an informed entity whose route id starts with the correct prefix
                         break
-
+        
+        print (alert_message)
         return alert_message
