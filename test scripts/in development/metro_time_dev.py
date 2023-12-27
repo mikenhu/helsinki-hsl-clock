@@ -186,70 +186,53 @@ class Hyperpixel2r:
 
         return game_font, font_colour
 
-    def scrolling_object_loop(self, game_font, font_colour):
-            
+    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0)):
+        
         # Image surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
 
-        # Define scrolling speed
-        scroll_speed=4
+        # image_positions = [(self.top_x, self.top_y), (self.bottom_x, self.bottom_y)]
 
         # Clear the top and bottom parts of the screen
-        pygame.draw.rect(self.screen, (0, 0, 0), (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
-        pygame.draw.rect(self.screen, (0, 0, 0), (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
+        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
+        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
 
         # Update the position of the image
-        self.top_x += scroll_speed
-        self.bottom_x -= scroll_speed
+        self.top_x -= scroll_speed
+        self.bottom_x += scroll_speed
 
         # If the image has moved off the screen, reset its position
-        if self.top_x > BAND_WIDTH:
-            self.top_x = -180
-        if self.bottom_x < -150:
-            self.bottom_x = BAND_WIDTH
+        if self.top_x < -150:
+            self.top_x = 480
+        if self.bottom_x > 480:
+            self.bottom_x = -180
 
         # Draw the scrolling image on the top and bottom of the screen
         self.screen.blit(self._img_double, (self.top_x, self.top_y))
-        self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
+        self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
-        # Render the text you want to display
-        text_surface = render_font(game_font, "Hello", font_colour)  # Adjust text and color
-
-        # Calculate the X-coordinate for the text between the images
-        text_x = self.bottom_x + self._img_left.get_width() + 10  # Adjust padding if needed
-        text_y = self.bottom_y + (self._img_left.get_height() - text_surface.get_height()) // 2
-
-        # Draw the text onto the screen surface
-        self.screen.blit(text_surface, (text_x, text_y))
-
-        # Calculate the X-coordinate for the second image (_img_right) next to the text
-        padding_between_text_and_image = 10  # Adjust this value as needed
-        second_image_x = text_x + text_surface.get_width() + padding_between_text_and_image
-
-        # Drawing the second image (_img_right) next to the text
-        self.screen.blit(self._img_right, (second_image_x, self.bottom_y))
-
-
-    def display_update_thread(self, metro, game_font, font_colour, start_time):
+    def status_update_thread(self, metro, game_font, font_colour, start_time):
         while self._running:
             elapsed_time = time.perf_counter() - start_time
-            if elapsed_time > 30:
+            if elapsed_time >= 0:  # To execute immediately and every 30 seconds
                 start_time = time.perf_counter()
                 display_times(metro, game_font, font_colour)
+            time.sleep(30 - elapsed_time % 30)  # Adjusts for any extra time elapsed
 
-    def display_update_thread_scroll(self, message, game_font, font_colour):
+    def alert_update_thread(self, alert, start_time):
         while self._running:
             elapsed_time = time.perf_counter() - start_time
-            if elapsed_time > 3600:
+            if elapsed_time >= 0:
                 start_time = time.perf_counter()
-                display_alert(message, game_font, font_colour)
+                display_alert(alert)
+            time.sleep(30 - elapsed_time % 30)  # Adjusts for any extra time elapsed
 
     def run(self):
         # Read the config file to get your API token and metro line
         config = get_config()
         metro = HSL_Trip_Update(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'])
-        message = HSL_Service_Alert (config['service_alerts_url'])
+        service_message = HSL_Service_Alert (config['route_id_metro'], config['service_alerts_url'])
 
         # Configure the font and colour
         game_font, font_colour = self.setup_fonts()
@@ -269,11 +252,11 @@ class Hyperpixel2r:
         # Create the Clock object
         clock = pygame.time.Clock()
 
-        display_update_thread = threading.Thread(target=self.display_update_thread, args=(metro, game_font, font_colour, start_time))
-        display_update_thread.start()
+        status_update_thread = threading.Thread(target=self.status_update_thread, args=(metro, game_font, font_colour, start_time))
+        status_update_thread.start()
 
-        display_update_thread_scroll = threading.Thread(target=self.display_update_thread_scroll, args=(message, game_font, font_colour, start_time))
-        display_update_thread_scroll.start()
+        alert_update_thread = threading.Thread(target=self.alert_update_thread, args=(service_message, start_time))
+        alert_update_thread.start()
         
         while self._running:
             for event in pygame.event.get():
@@ -285,7 +268,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop(game_font, font_colour)
+            self.scrolling_object_loop()
 
             if self._rawfb:
                 self._updatefb()
@@ -295,8 +278,8 @@ class Hyperpixel2r:
                 clock.tick(60)
                 pygame.event.pump()
 
-        display_update_thread.join()
-        display_update_thread_scroll.join()
+        status_update_thread.join()
+        alert_update_thread.join()
         pygame.quit()
         sys.exit(0)
 
@@ -358,8 +341,14 @@ def display_times(metro, game_font, font_colour):
         ]
     )
 
-def display_alert(message):
-    return message.service_alert()
+def display_alert(metro):
+
+    message = metro.service_alert()
+
+    if not message:
+        return ""
+
+    print(message)
 
 # Fix minutes display
 def min_or_mins(wait_time):
