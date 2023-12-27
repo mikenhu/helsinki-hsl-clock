@@ -185,7 +185,7 @@ class Hyperpixel2r:
         pygame.font.init()
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
-        # The number here will change the font size
+        # The number here will change the font size and color
         game_font = pygame.font.Font("font/train-font.ttf", 50)
         font_color = (250, 250, 0)
 
@@ -322,18 +322,14 @@ def display_times(trip_status, game_font, font_color):
     display.blit_screen(
         [
             {"item": first_metro_dest, "type": "text"},
-            # {"item": first_metro_header, "type": "text"},
             {"item": first_metro_incoming, "type": "text"},
             {"item": first_metro_text, "type": "text"},
             {"item": first_metro_next, "type": "text"},
-            # {"item": first_metro_image, "type": "image"},
 
             {"item": second_metro_dest, "type": "text"},
-            # {"item": second_metro_header, "type": "text"},
             {"item": second_metro_incoming, "type": "text"},
             {"item": second_metro_text, "type": "text"},
             {"item": second_metro_next, "type": "text"},
-            # {"item": second_metro_image, "type": "image"},
         ]
     )
 
