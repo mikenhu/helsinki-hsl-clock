@@ -15,7 +15,7 @@ Great thanks to Edd @eddible for the initial project.
 * [Raspberry Pi Zero 2 WH](https://shop.pimoroni.com/products/raspberry-pi-zero-w?variant=39458414297171)
 * Micro SD Card - Use a high endurance card, cheap ones didn't last as long in my experience.
 * [3D Printed Case](https://cults3d.com/en/3d-model/gadget/sphere-enclosure-w-bump-legs-m3o101-for-pimoroni-hyperpixel-2-1-round-touch-and-raspberry-pi)
-* Angled micro USB cable
+* Optional angled micro USB cable
 * Optional USB plug
 
 ## Guide
