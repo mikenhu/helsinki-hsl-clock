@@ -60,9 +60,10 @@ Great thanks to Edd @eddible for the initial project.
 
     ```ini
     [HSL-CONFIG]
-    stop_id_with_names = {"1541602": "Kivenlahti", "1541601": "Vuosaari"}
+    stop_id_with_names = {"1541602": "West", "1541601": "East"}
     route_id_metro = 31M
-    trip_update_url = <https://realtime.hsl.fi/realtime/trip-updates/v2/hsl>
+    trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
+    service_alerts_url = <https://realtime.hsl.fi/realtime/service-alerts/v2/hsl>
     ```
 
   * Once done, press `CTRL+X` → `Y` → `Enter`
@@ -112,8 +113,3 @@ shell_command:
   restart_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo reboot"'
   shutdown_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo shutdown -h now"'
 ```
-
-## To do
-
-* Add service alerts as scrolling texts
-* ...
