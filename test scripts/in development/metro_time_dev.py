@@ -7,6 +7,7 @@ import pygame
 import time
 import threading
 import configparser
+import queue
 
 from hsl import HSL_Trip_Update
 from hsl import HSL_Service_Alert
@@ -55,6 +56,8 @@ class Hyperpixel2r:
         self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
         self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
         self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
+
+        self.alert_result = None
 
 
     def _exit(self, sig, frame):
@@ -132,7 +135,6 @@ class Hyperpixel2r:
         with open(fbdev, "wb") as fb:
             fb.write(self.screen.convert(16, 0).get_buffer())
 
-
     # This code defines a function called blit_screen that takes in a list of dictionaries called items as its argument. 
     # The function sets up several variables at the beginning:
         # spacer is set to 70 and determines the size of the space between items.
@@ -147,6 +149,7 @@ class Hyperpixel2r:
     # After the blit call, the value of r is increased by spacer, and the value of row is incremented by 1. 
     # If row is equal to 4, the values of row and l are reset to 0 and 270, respectively, and r is set to top_row again.
     #  This process continues until all dictionaries in items have been processed. The blit_screen function does not return any value.
+    
     def blit_screen(self, items):
         # Set the size of the space between items and the position of the first item
         spacer = 70
@@ -175,7 +178,7 @@ class Hyperpixel2r:
                     row = 0
                     l = 270
                     r = top_row
-
+    
     def setup_fonts(self):
         pygame.font.init()
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
@@ -186,31 +189,46 @@ class Hyperpixel2r:
 
         return game_font, font_colour
 
-    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0)):
-        
-        # Image surface size
+    def scrolling_object_loop(self, alert_queue, game_font, font_colour, scroll_speed=3, clear_color=(0, 0, 0)):
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
 
-        # image_positions = [(self.top_x, self.top_y), (self.bottom_x, self.bottom_y)]
+        # Update alert if new data in the queue
+        if not alert_queue.empty():
+            new_alert_data = alert_queue.get()
+            if self.alert_result != new_alert_data:
+                self.alert_result = new_alert_data
 
-        # Clear the top and bottom parts of the screen
-        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
-        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
+        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
+        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
 
-        # Update the position of the image
-        self.top_x -= scroll_speed
-        self.bottom_x += scroll_speed
+        self.top_x += scroll_speed
+        self.bottom_x -= scroll_speed
 
-        # If the image has moved off the screen, reset its position
-        if self.top_x < -150:
-            self.top_x = 480
-        if self.bottom_x > 480:
-            self.bottom_x = -180
+        if self.top_x > BAND_WIDTH:
+            self.top_x = -180
 
-        # Draw the scrolling image on the top and bottom of the screen
         self.screen.blit(self._img_double, (self.top_x, self.top_y))
-        self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
+
+        if isinstance(self.alert_result, str) and self.alert_result is not None:
+            text_surface = render_font(game_font, self.alert_result, font_colour)
+            text_width = text_surface.get_width()
+
+            text_x = self.bottom_x + self._img_left.get_width() + 10
+            text_y = self.bottom_y + 10
+
+            text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
+
+            if self.bottom_x < -(150 + text_width):
+                self.bottom_x = BAND_WIDTH
+
+            self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
+            self.screen.blit(text_surface, text_rect)
+            self.screen.blit(self._img_right, (text_x + text_width + 10, self.bottom_y))
+        else:
+            if self.bottom_x < -150:
+                self.bottom_x = BAND_WIDTH
+            self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
     def status_update_thread(self, metro, game_font, font_colour, start_time):
         while self._running:
@@ -218,15 +236,17 @@ class Hyperpixel2r:
             if elapsed_time >= 0:  # To execute immediately and every 30 seconds
                 start_time = time.perf_counter()
                 display_times(metro, game_font, font_colour)
-            time.sleep(30 - elapsed_time % 30)  # Adjusts for any extra time elapsed
+            time.sleep(15 - elapsed_time % 15)  # Adjusts for any extra time elapsed
 
-    def alert_update_thread(self, alert, start_time):
+    def alert_update_thread(self, alert, start_time, alert_queue):
         while self._running:
             elapsed_time = time.perf_counter() - start_time
             if elapsed_time >= 0:
                 start_time = time.perf_counter()
-                display_alert(alert)
-            time.sleep(30 - elapsed_time % 30)  # Adjusts for any extra time elapsed
+                # display_alert(alert)
+                alert_message = display_alert(alert)
+                alert_queue.put(alert_message)  # Put the alert into the queue
+            time.sleep(60 - elapsed_time % 60)  # Adjusts for any extra time elapsed
 
     def run(self):
         # Read the config file to get your API token and metro line
@@ -236,6 +256,9 @@ class Hyperpixel2r:
 
         # Configure the font and colour
         game_font, font_colour = self.setup_fonts()
+        
+        # Initialize a queue
+        alert_queue = queue.Queue()
 
         # Set the starting position for the text
         self.top_x = 480 # start off the screen to the right
@@ -255,7 +278,7 @@ class Hyperpixel2r:
         status_update_thread = threading.Thread(target=self.status_update_thread, args=(metro, game_font, font_colour, start_time))
         status_update_thread.start()
 
-        alert_update_thread = threading.Thread(target=self.alert_update_thread, args=(service_message, start_time))
+        alert_update_thread = threading.Thread(target=self.alert_update_thread, args=(service_message, start_time, alert_queue))
         alert_update_thread.start()
         
         while self._running:
@@ -268,7 +291,7 @@ class Hyperpixel2r:
                         self._running = False
                         break
 
-            self.scrolling_object_loop()
+            self.scrolling_object_loop(alert_queue, game_font, font_colour)
 
             if self._rawfb:
                 self._updatefb()
@@ -347,8 +370,9 @@ def display_alert(metro):
 
     if not message:
         return ""
-
+    
     print(message)
+    return message
 
 # Fix minutes display
 def min_or_mins(wait_time):
