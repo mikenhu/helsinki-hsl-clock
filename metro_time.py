@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-import logging
 import os
 import sys
 import signal
 import pygame
 import time
 import threading
-import configparser
+import queue
 
-from hsl import HSL
+from hsl import *
 
 COMING = "Coming"
 NEXT = "Next"
 DESTINATION = "Destination"
 MESSAGE = "Message"
-
 
 # Credit to Pimoroni for the Hyperpixel2r class
 class Hyperpixel2r:
@@ -43,9 +41,27 @@ class Hyperpixel2r:
         self._colour = (255, 0, 255)
 
         # Load the image and create img object
-        self._img = pygame.image.load("imgs/double-tram.png")
-        self._img = pygame.transform.scale(self._img, (1050 / 6, 367 / 6))
-        self._img = self._img.convert_alpha()
+        def load_and_scale_image(path, size):
+            img = pygame.image.load(path)
+            img = pygame.transform.scale(img, size)
+            return img.convert_alpha()
+
+        size_single = (512 // 6, 358 // 6)
+        size_double = (1050 // 6, 367 // 6)
+
+        self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
+        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
+        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
+
+        # Initiate alert message
+        self.alert_result = None
+        
+        # Initiate top and bottom bands
+        self.top_x = 480
+        self.top_y = 40
+        self.bottom_x = -180
+        self.bottom_y = 390
+
 
     def _exit(self, sig, frame):
         self._running = False
@@ -122,7 +138,6 @@ class Hyperpixel2r:
         with open(fbdev, "wb") as fb:
             fb.write(self.screen.convert(16, 0).get_buffer())
 
-
     # This code defines a function called blit_screen that takes in a list of dictionaries called items as its argument. 
     # The function sets up several variables at the beginning:
         # spacer is set to 70 and determines the size of the space between items.
@@ -136,7 +151,7 @@ class Hyperpixel2r:
 
     # After the blit call, the value of r is increased by spacer, and the value of row is incremented by 1. 
     # If row is equal to 4, the values of row and l are reset to 0 and 270, respectively, and r is set to top_row again.
-    #  This process continues until all dictionaries in items have been processed. The blit_screen function does not return any value.
+    # This process continues until all dictionaries in items have been processed. The blit_screen function does not return any value.
     def blit_screen(self, items):
         # Set the size of the space between items and the position of the first item
         spacer = 70
@@ -165,103 +180,109 @@ class Hyperpixel2r:
                     row = 0
                     l = 270
                     r = top_row
-
+    
     def setup_fonts(self):
         pygame.font.init()
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
 
-        # The number here will change the font size
+        # The number here will change the font size and color
         game_font = pygame.font.Font("font/train-font.ttf", 50)
-        font_colour = (250, 250, 0)
+        font_color = (250, 250, 0)
 
-        return game_font, font_colour
+        return game_font, font_color
 
-    def scrolling_object_loop(self, scroll_speed=3, clear_color=(0, 0, 0)):
-        
-        # Image surface size
+    def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
+    # Image surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
+        obj_padding = 10
 
-        # image_positions = [(self.top_x, self.top_y), (self.bottom_x, self.bottom_y)]
+        # Update alert if new data in the queue
+        if not alert_queue.empty():
+            new_alert_data = alert_queue.get()
+            if self.alert_result != new_alert_data:
+                self.alert_result = new_alert_data
 
-        # Clear the top and bottom parts of the screen
-        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # top screen
-        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # bottom screen
+        pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
+        pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
 
-        # Update the position of the image
-        self.top_x -= scroll_speed
-        self.bottom_x += scroll_speed
+        self.top_x += scroll_speed
+        self.bottom_x -= scroll_speed
 
-        # If the image has moved off the screen, reset its position
-        if self.top_x < -150:
-            self.top_x = 480
-        if self.bottom_x > 480:
-            self.bottom_x = -180
+        if self.top_x > BAND_WIDTH:
+            self.top_x = -180
 
-        # Draw the scrolling image on the top and bottom of the screen
-        self.screen.blit(self._img, (self.top_x, self.top_y))
-        self.screen.blit(self._img, (self.bottom_x, self.bottom_y))
+        self.screen.blit(self._img_double, (self.top_x, self.top_y))
 
-    def display_update_thread(self, metro, game_font, font_colour, start_time):
+        if isinstance(self.alert_result, str) and self.alert_result is not None:
+            text_surface = render_font(game_font, self.alert_result, font_color)
+            text_width = text_surface.get_width()
+
+            text_x = self.bottom_x + self._img_left.get_width() + obj_padding
+            text_y = self.bottom_y + obj_padding
+
+            text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
+
+            if self.bottom_x < -(150 + text_width):
+                self.bottom_x = BAND_WIDTH
+
+            self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
+            self.screen.blit(text_surface, text_rect)
+            self.screen.blit(self._img_right, (text_x + text_width + obj_padding, self.bottom_y))
+        else:
+            if self.bottom_x < -150:
+                self.bottom_x = BAND_WIDTH
+            self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
+
+    def update_thread(self, updater_func, updater_args, interval, queue=None):
         while self._running:
-            elapsed_time = time.perf_counter() - start_time
-            if elapsed_time > 30:
-                start_time = time.perf_counter()
-                display_times(metro, game_font, font_colour)
-
+            if queue is None:
+                updater_func(*updater_args)
+            else:
+                result = updater_func(*updater_args)
+                queue.put(result)
+            time.sleep(interval)
 
     def run(self):
-        # Read the config file to get your API token and metro line
-        config = get_config()
-        metro = HSL(config['stop_id_with_names'], config['route_id_metro'], config['trip_update_url'], config['service_alerts_url'])
-        # Configure the font and colour
-        game_font, font_colour = self.setup_fonts()
+        config = Transit_Config.get_config()
+        trip_status = HSL_Trip_Update(config)
+        service_message = HSL_Service_Alert(config)
 
-        # Set the starting position for the text
-        self.top_x = 480 # start off the screen to the right
-        self.top_y = 40
+        game_font, font_color = self.setup_fonts()
 
-        self.bottom_x = -180
-        self.bottom_y = 390
+        alert_queue = queue.Queue()  # Initialize the alert queue
 
         self._running = True
         signal.signal(signal.SIGINT, self._exit)
 
-        start_time = time.perf_counter()
-        
-        # Create the Clock object
-        clock = pygame.time.Clock()
+        trip_update_thread = threading.Thread(target=self.update_thread, args=(display_times, (trip_status, game_font, font_color), 15))
+        alert_update_thread = threading.Thread(target=self.update_thread, args=(display_alert, (service_message,), 300, alert_queue))
 
-        display_update_thread = threading.Thread(target=self.display_update_thread, args=(metro, game_font, font_colour, start_time))
-        display_update_thread.start()
-        
+        trip_update_thread.start()
+        alert_update_thread.start()
+
         while self._running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self._running = False
-                    break
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._running = False
-                        break
 
-            self.scrolling_object_loop()
+            self.scrolling_objects_loop(alert_queue, game_font, font_color)
 
             if self._rawfb:
                 self._updatefb()
             else:
                 pygame.display.update()
-                # Limit the loop to the specified frame rate
-                clock.tick(60)
                 pygame.event.pump()
+                pygame.time.Clock().tick(60) # 60fps
 
-        display_update_thread.join()
+        trip_update_thread.join()
+        alert_update_thread.join()
         pygame.quit()
         sys.exit(0)
 
-def display_times(metro, game_font, font_colour):
+def display_times(trip_status, game_font, font_color):
 
-    statuses = metro.metro_status()
+    statuses = trip_status.metro_status()
 
     if not statuses:
         return False
@@ -287,14 +308,14 @@ def display_times(metro, game_font, font_colour):
     first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
     second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
 
-    first_metro_dest = render_font(game_font, first_metro_dest, font_colour)
-    second_metro_dest = render_font(game_font, second_metro_dest, font_colour)
-    first_metro_incoming = render_font(game_font, first_metro_incoming, font_colour)
-    second_metro_incoming = render_font(game_font, second_metro_incoming, font_colour)
-    first_metro_text = render_font(game_font, first_metro_text, font_colour)
-    second_metro_text = render_font(game_font, second_metro_text, font_colour)
-    first_metro_next = render_font(game_font, first_metro_next, font_colour)
-    second_metro_next = render_font(game_font, second_metro_next, font_colour)
+    first_metro_dest = render_font(game_font, first_metro_dest, font_color)
+    second_metro_dest = render_font(game_font, second_metro_dest, font_color)
+    first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
+    second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
+    first_metro_text = render_font(game_font, first_metro_text, font_color)
+    second_metro_text = render_font(game_font, second_metro_text, font_color)
+    first_metro_next = render_font(game_font, first_metro_next, font_color)
+    second_metro_next = render_font(game_font, second_metro_next, font_color)
         
     # Clear screen before rendering new data
     pygame.draw.rect(display.screen, (0, 0, 0), (0, 102, 480, 287))
@@ -302,20 +323,25 @@ def display_times(metro, game_font, font_colour):
     display.blit_screen(
         [
             {"item": first_metro_dest, "type": "text"},
-            # {"item": first_metro_header, "type": "text"},
             {"item": first_metro_incoming, "type": "text"},
             {"item": first_metro_text, "type": "text"},
             {"item": first_metro_next, "type": "text"},
-            # {"item": first_metro_image, "type": "image"},
 
             {"item": second_metro_dest, "type": "text"},
-            # {"item": second_metro_header, "type": "text"},
             {"item": second_metro_incoming, "type": "text"},
             {"item": second_metro_text, "type": "text"},
             {"item": second_metro_next, "type": "text"},
-            # {"item": second_metro_image, "type": "image"},
         ]
     )
+
+def display_alert(string):
+
+    message = string.service_alert()
+
+    if not message:
+        return ""
+
+    return message
 
 # Fix minutes display
 def min_or_mins(wait_time):
@@ -328,32 +354,11 @@ def min_or_mins(wait_time):
     else:
         return " "
 
-
 def check_for_value(obj, key):
     return obj[key] if key in obj else "?"
 
-
-def render_font(font, text, font_colour, bold=False):
-    return font.render(text, bold, font_colour)
-
-
-def get_config():
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    if "HSL-CONFIG" not in config:
-        logging.info("No config file found, or badly formatted.")
-        return {}
-    config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro"]
-    configured_values = {}
-    for option in config_options:
-        configured_value = config['HSL-CONFIG'][f'{option}']
-        if not configured_value:
-            logging.error(f"Missing {option} from config file, but it is required.")
-            sys.exit()
-        else:
-            configured_values[option] = configured_value.strip()
-
-    return configured_values
+def render_font(font, text, font_color, bold=False):
+    return font.render(text, bold, font_color)
 
 display = Hyperpixel2r()
 display.run()
