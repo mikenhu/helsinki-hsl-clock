@@ -146,8 +146,6 @@ class HSL_Service_Alert:
                             if translation.language == 'en':
                                 # create the alert message by combining the translation text and the active period string
                                 alert_message = f"{translation.text} {active_period_str}"
-                                # yield the alert message
-                                # alert_message.add(alert)
                                 # exit the loop early since we have found the English translation we need
                                 break
                         # exit the loop early since we have found an informed entity whose route id starts with the correct prefix
