@@ -3,6 +3,9 @@ import requests
 import json
 import time
 import socket
+import configparser
+import logging
+import sys
 
 from google.transit import gtfs_realtime_pb2
 
@@ -33,6 +36,26 @@ class Transit_Config:
         self.route_id_metro = route_id_metro
         self.trip_update_url = trip_update_url
         self.service_alerts_url = service_alerts_url
+    
+    @staticmethod
+    def get_config():
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+        if "HSL-CONFIG" not in config:
+            logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
+            sys.exit(1)  # Exit with an error code indicating failure
+
+        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro"]
+        configured_values = {}
+        for option in config_options:
+            configured_value = config['HSL-CONFIG'].get(option)
+            if not configured_value:
+                logging.error(f"Missing {option} from config file, but it is required.")
+                sys.exit(1)  # Exit with an error code indicating failure
+            else:
+                configured_values[option] = configured_value.strip()
+
+        return Transit_Config(**configured_values)
 
 class HSL_Trip_Update:
 

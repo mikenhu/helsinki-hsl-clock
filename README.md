@@ -56,7 +56,7 @@ Great thanks to Edd @eddible for the initial project.
   * Then this: `sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0`
 * You can now configure your config file with your own details. Run these commands:
   * `nano config.ini`
-  * Edit the file with the HSL API, your stop ids, stop names and routes. It should be formatted like this:
+  * Edit the file with the HSL API, your stop ids, direction names and route id. It should be formatted like this:
 
     ```ini
     [HSL-CONFIG]
@@ -83,10 +83,10 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 ### Connect your HA to the Pi
 
 * SSH into your HA host `ssh root@homeassistant.local` or you can use the Terminal add-on on HA.
-* Create the folder `mkdir /config/.ssh`.
-* Create key `ssh-keygen`.
+* Create folder `mkdir /config/.ssh`.
+* Create a public key `ssh-keygen`.
 * Tell it to store it in `/config/.ssh/id_rsa`. Do not set a password for the key!
-* Copy public key to the Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[IP]`
+* Copy the public key to the Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[IP]`
 * Try to ssh into the Pi from your HA and see if it works without a login.
 
 ### Create the switches in HA
