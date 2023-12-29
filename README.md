@@ -42,18 +42,38 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Installing the software
 
-* SSH into the Pi.
-* Install the display driver:
-  * `git clone https://github.com/pimoroni/hyperpixel2r`
-  * `cd hyperpixel2r`
-  * `sudo ./install.sh`
+* SSH into your Pi.
+* Install git:
+
+  ```cli
+  sudo apt-get update
+  sudo apt install git
+  ```
+
+* Install the display driver then reboot:
+
+  ```cli
+  git clone https://github.com/pimoroni/hyperpixel2r
+  cd hyperpixel2r
+  sudo ./install.sh
+  sudo reboot
+  ```
+
 * Download the code and move into the director:  
-  * `git clone https://github.com/mikenhu/hsl-metro-clock`
-  * `cd hsl-metro-clock`
+
+  ```cli
+  git clone https://github.com/mikenhu/hsl-metro-clock
+  cd hsl-metro-clock
+  ```
+
 * Install required libraries:
-  * If you're on a fresh install, you probably won't have pip installed so run this first: `sudo apt install python3-pip`
-  * Then this: `sudo pip3 install -r requirements.txt`
-  * Then this: `sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0`
+
+  ```cli
+  sudo apt install python3-pip -y
+  sudo pip3 install -r requirements.txt
+  sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 -y
+  ```
+
 * You can now configure your config file with your own details. Run these commands:
   * `nano config.ini`
   * Edit the file with your stop ids, route id, and defined direction names as you wish. It should be formatted like this:
@@ -68,9 +88,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
   * Once done, press `CTRL+X` → `Y` → `Enter`
 * Next we'll set the script to launch at start up. Run these commands:
-  * `sudo cp metro.sh /usr/bin`
-  * `sudo chmod +x /usr/bin/metro.sh`
-  * `sudo nano /etc/rc.local`
+
+  ```cli
+  sudo cp metro.sh /usr/bin
+  sudo chmod +x /usr/bin/metro.sh
+  sudo nano /etc/rc.local
+  ```
+  
   * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this: `bash metro.sh &>/dev/null`
 
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
