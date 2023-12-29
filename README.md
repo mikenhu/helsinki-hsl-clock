@@ -137,3 +137,6 @@ shell_command:
   restart_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo reboot"'
   shutdown_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo shutdown -h now"'
 ```
+
+## To do
+* Scrolling stop names.

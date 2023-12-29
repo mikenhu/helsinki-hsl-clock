@@ -32,7 +32,7 @@ class Hyperpixel2r:
 
         self._running = False
         self._origin = pygame.math.Vector2(*self.center)
-        # self._clock = pygame.time.Clock()
+        self._clock = pygame.time.Clock()
         self._colour = (255, 0, 255)
 
         # Load the image, reduce the size of the tram icon and create img object
@@ -157,22 +157,20 @@ class Hyperpixel2r:
         # Initialize the row counter
         row = 0
 
-        # Iterate over the items in the list
-        for item in items:
-            # Check if the item exists
-            if item["item"]:
-                # Blit the item onto the screen at the specified position
-                self.screen.blit(item["item"], (l, r))
+        # Iterate over the items in the array
+        for index, item in enumerate(items):
+            # Blit the item onto the screen at the specified position
+            self.screen.blit(items[index], (l, r))
 
-                # Increment the row position and row counter
-                r += spacer
-                row += 1
+            # Increment the row position and row counter
+            r += spacer
+            row += 1
 
-                # If we have reached the fourth row, reset the position and row counter
-                if row == 4:
-                    row = 0
-                    l = 270
-                    r = top_row
+            # If we have reached the fourth row, reset the position and row counter
+            if row == 4:
+                row = 0
+                l = 270
+                r = top_row
     
     def setup_fonts(self):
         pygame.font.init()
@@ -270,7 +268,7 @@ class Hyperpixel2r:
             else:
                 pygame.display.update()
                 pygame.event.pump()
-                pygame.time.Clock().tick(60) # 60fps
+                self._clock.tick(60) # 60fps
 
         stop_flag.set()
         trip_update_thread.join(timeout=10)
@@ -320,14 +318,14 @@ def display_times(trip_status, game_font, font_color):
 
     display.blit_screen(
         [
-            {"item": first_metro_dest},
-            {"item": first_metro_incoming},
-            {"item": first_metro_text},
-            {"item": first_metro_next},
-            {"item": second_metro_dest},
-            {"item": second_metro_incoming},
-            {"item": second_metro_text},
-            {"item": second_metro_next},
+            first_metro_dest,
+            first_metro_incoming,
+            first_metro_text,
+            first_metro_next,
+            second_metro_dest,
+            second_metro_incoming,
+            second_metro_text,
+            second_metro_next,
         ]
     )
 
