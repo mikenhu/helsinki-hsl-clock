@@ -35,9 +35,8 @@ Great thanks to Edd @eddible for the initial project.
 * Click `Write` and wait for the OS to be written to your SD Card
 * Insert it into your Pi Zero 2 W, connect it to power and give it a few minutes to complete the first boot.  
 
-### Get HSL API
+### Get your stop and route ids
 
-* Go [here](https://hsldevcom.github.io/gtfs_rt/) and get trip update endpoint.
 * To get your stops and routes, [go here](https://transitfeeds.com/p/helsinki-regional-transport/735/latest/stops).
 
 ### Installing the software
