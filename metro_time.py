@@ -45,6 +45,8 @@ class Hyperpixel2r:
 
         # Initiate alert message
         self.alert_result = None
+        # Define a flag to stop threads gracefully later
+        self.stop_flag = threading.Event()
         
         # Set top and bottom bands starting coordinations
         self.top_x = 480
@@ -52,6 +54,7 @@ class Hyperpixel2r:
         self.bottom_x = -180
         self.bottom_y = 390
 
+        self._running = True
 
     def _exit(self, sig, frame):
         self._running = False
@@ -224,14 +227,18 @@ class Hyperpixel2r:
                 self.bottom_x = BAND_WIDTH
             self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
-    def update_thread(self, updater_func, updater_args, interval, queue=None):
+    def update_thread(self, thread_desc, stop_flag, updater_func, updater_args, interval, queue=None):
         while self._running:
+            if stop_flag.is_set():
+                break  # Exit the loop if stop_flag is set
             if queue is None:
                 updater_func(*updater_args)
             else:
                 result = updater_func(*updater_args)
                 queue.put(result)
-            time.sleep(interval)
+            # Synchronize sleep with stop_flag.wait() for a specific interval
+            stop_flag.wait(interval)
+        print(f"{thread_desc} thread stopped.")
 
     def run(self):
         config = Transit_Config.get_config()
@@ -240,20 +247,20 @@ class Hyperpixel2r:
 
         game_font, font_color = self.setup_fonts()
 
-        alert_queue = queue.Queue()  # Initialize the alert queue
+        alert_queue = queue.Queue() # Initialize the alert queue
+        stop_flag = self.stop_flag # Stop thread flag
 
-        self._running = True
-        signal.signal(signal.SIGINT, self._exit)
-
-        trip_update_thread = threading.Thread(target=self.update_thread, args=(display_times, (trip_status, game_font, font_color), 15))
-        alert_update_thread = threading.Thread(target=self.update_thread, args=(display_alert, (service_message,), 300, alert_queue))
+        trip_update_thread = threading.Thread(target=self.update_thread, args=("Metro status", stop_flag, display_times, (trip_status, game_font, font_color), 15))
+        alert_update_thread = threading.Thread(target=self.update_thread, args=("Service alert", stop_flag, display_alert, (service_message,), 300, alert_queue))
 
         trip_update_thread.start()
         alert_update_thread.start()
 
+        signal.signal(signal.SIGINT, self._exit)
+
         while self._running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                if event.type == pygame.QUIT:
                     self._running = False
 
             self.scrolling_objects_loop(alert_queue, game_font, font_color)
@@ -265,8 +272,9 @@ class Hyperpixel2r:
                 pygame.event.pump()
                 pygame.time.Clock().tick(60) # 60fps
 
-        trip_update_thread.join()
-        alert_update_thread.join()
+        stop_flag.set()
+        trip_update_thread.join(timeout=10)
+        alert_update_thread.join(timeout=10)
         pygame.quit()
         sys.exit(0)
 
