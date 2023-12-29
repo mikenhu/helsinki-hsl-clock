@@ -10,7 +10,7 @@ import sys
 from google.transit import gtfs_realtime_pb2
 
 def fetch_feed(url):
-    MAX_RETRIES = 3
+    MAX_RETRIES = 5
     for _ in range(MAX_RETRIES):
         try:
             with requests.Session() as session:
@@ -105,7 +105,7 @@ class HSL_Trip_Update:
         result = {
             i: { 
                 'Destination': dest, 
-                'Coming': wait_times[0] if len(wait_times) >= 1 else None, 
+                'Incoming': wait_times[0] if len(wait_times) >= 1 else None, 
                 'Next': wait_times[1] if len(wait_times) >= 2 else None
             }
             for i, (dest, wait_times) in enumerate(stop_times.items())

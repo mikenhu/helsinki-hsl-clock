@@ -9,11 +9,6 @@ import queue
 
 from hsl import *
 
-COMING = "Coming"
-NEXT = "Next"
-DESTINATION = "Destination"
-MESSAGE = "Message"
-
 # Credit to Pimoroni for the Hyperpixel2r class
 class Hyperpixel2r:
     screen = None
@@ -40,15 +35,10 @@ class Hyperpixel2r:
         # self._clock = pygame.time.Clock()
         self._colour = (255, 0, 255)
 
-        # Load the image and create img object
-        def load_and_scale_image(path, size):
-            img = pygame.image.load(path)
-            img = pygame.transform.scale(img, size)
-            return img.convert_alpha()
-
+        # Load the image, reduce the size of the tram icon and create img object
+        # Credit for the icon source: https://www.flaticon.com/free-icons/train
         size_single = (512 // 6, 358 // 6)
         size_double = (1050 // 6, 367 // 6)
-
         self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
         self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
         self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
@@ -56,7 +46,7 @@ class Hyperpixel2r:
         # Initiate alert message
         self.alert_result = None
         
-        # Initiate top and bottom bands
+        # Set top and bottom bands starting coordinations
         self.top_x = 480
         self.top_y = 40
         self.bottom_x = -180
@@ -288,18 +278,18 @@ def display_times(trip_status, game_font, font_color):
         return False
 
     results = {
-        'first_metro_incoming': check_for_value(statuses[0], COMING),
-        'second_metro_incoming': check_for_value(statuses[1], COMING),
-        'first_metro_next': check_for_value(statuses[0], NEXT),
-        'second_metro_next': check_for_value(statuses[1], NEXT),
-        'first_metro_dest': check_for_value(statuses[0], DESTINATION),
-        'second_metro_dest': check_for_value(statuses[1], DESTINATION)
+        'first_metro_incoming': check_for_value(statuses[0], "Incoming"),
+        'second_metro_incoming': check_for_value(statuses[1], "Incoming"),
+        'first_metro_next': check_for_value(statuses[0], "Next"),
+        'second_metro_next': check_for_value(statuses[1], "Next"),
+        'first_metro_dest': check_for_value(statuses[0], "Destination"),
+        'second_metro_dest': check_for_value(statuses[1], "Destination")
     }
 
     truncate = 6
     dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
             for result in [results['first_metro_dest'], results['second_metro_dest']]]
-    first_metro_dest, second_metro_dest = [f"{dest}  " for dest in dests]
+    first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
 
     first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
     second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
@@ -322,15 +312,14 @@ def display_times(trip_status, game_font, font_color):
 
     display.blit_screen(
         [
-            {"item": first_metro_dest, "type": "text"},
-            {"item": first_metro_incoming, "type": "text"},
-            {"item": first_metro_text, "type": "text"},
-            {"item": first_metro_next, "type": "text"},
-
-            {"item": second_metro_dest, "type": "text"},
-            {"item": second_metro_incoming, "type": "text"},
-            {"item": second_metro_text, "type": "text"},
-            {"item": second_metro_next, "type": "text"},
+            {"item": first_metro_dest},
+            {"item": first_metro_incoming},
+            {"item": first_metro_text},
+            {"item": first_metro_next},
+            {"item": second_metro_dest},
+            {"item": second_metro_incoming},
+            {"item": second_metro_text},
+            {"item": second_metro_next},
         ]
     )
 
@@ -359,6 +348,11 @@ def check_for_value(obj, key):
 
 def render_font(font, text, font_color, bold=False):
     return font.render(text, bold, font_color)
+
+def load_and_scale_image(path, size):
+    img = pygame.image.load(path)
+    img = pygame.transform.scale(img, size)
+    return img.convert_alpha()
 
 display = Hyperpixel2r()
 display.run()
