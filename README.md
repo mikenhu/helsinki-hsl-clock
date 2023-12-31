@@ -116,8 +116,8 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 * Create folder `mkdir /config/.ssh`.
 * Create a public key `ssh-keygen`.
 * Tell it to store it in `/config/.ssh/id_rsa`. Do not set a password for the key!
-* Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[IP]`
-* Try to ssh into your Pi from your HA and see if it works without a login.
+* Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]`
+* Try to ssh into your Pi from your HA `ssh -i /config/.ssh/id_rsa pi@[Host]` and see if it works without a login.
 
 ### Create the switches in HA
 
@@ -127,18 +127,13 @@ Copy my config below and make it match your network setup.
 
 ```yaml
 command_line:
-  - binary_sensor:
-      name: Metro Dashboard Screen Status
-      unique_id: metro_dashboard_screen
-      command: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
-      payload_on: "0"
-      payload_off: "1"
-      scan_interval: 5
   - switch:
-      name: Metro Dashboard Switch
-      unique_id: metro_dashboard_switch
-      command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
-      command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      name: Metro Dashboard Screen
+      unique_id: metro_dashboard_screen
+      command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      command_state: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
+      value_template: '{{ value == "0" }}'
 ```
 
 * Shell command
