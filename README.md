@@ -127,21 +127,26 @@ Copy my config below and make it match your network setup.
 
 ```yaml
 command_line:
-  switch:
-    name: Metro Clock Switch
-    unique_id: metro_clock_switch
-    # Turn off display
-    command_off: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
-    # Turn on display
-    command_on: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
+  - binary_sensor:
+      name: Metro Dashboard Screen Status
+      unique_id: metro_dashboard_screen
+      command: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
+      payload_on: "0"
+      payload_off: "1"
+      scan_interval: 5
+  - switch:
+      name: Metro Dashboard Switch
+      unique_id: metro_dashboard_switch
+      command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
 ```
 
 * Shell command
 
 ```yaml
 shell_command:
-  restart_pi: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo reboot"'
-  shutdown_pi: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo shutdown -h now"'
+  restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[IP] "sudo reboot"'
+  shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[IP] "sudo shutdown -h now"'
 ```
 
 ## To do
