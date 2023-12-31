@@ -99,7 +99,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   
   ```bash
   # Fix issue where the Pi restart but sometimes the Hyperpixel does not have screen output
-  /usr/bin/hyperpixel2r-init &>/dev/null
+  /usr/bin/hyperpixel2r-init &
   bash metro.sh &>/dev/null
   ```
 
