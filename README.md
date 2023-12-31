@@ -95,7 +95,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   sudo nano /etc/rc.local
   ```
   
-  * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this: `bash metro.sh &>/dev/null`
+* A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
+  
+  ```bash
+  # Fix issue where the Pi restart but sometimes the Hyperpixel does not have screen output
+  /usr/bin/hyperpixel2r-init &>/dev/null
+  bash metro.sh &>/dev/null
+  ```
 
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
 * That's it for the software. You can run the metro clock as is. Or...
@@ -125,17 +131,17 @@ command_line:
     name: Metro Clock Switch
     unique_id: metro_clock_switch
     # Turn off display
-    command_off: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
+    command_off: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
     # Turn on display
-    command_on: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
+    command_on: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
 ```
 
 * Shell command
 
 ```yaml
 shell_command:
-  restart_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo reboot"'
-  shutdown_pi: 'ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo shutdown -h now"'
+  restart_pi: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo reboot"'
+  shutdown_pi: 'ssh -i /config/.ssh/id_rsa -o ''StrictHostKeyChecking=no'' -o UserKnownHostsFile=/dev/null -q pi@[IP] "sudo shutdown -h now"'
 ```
 
 ## To do
