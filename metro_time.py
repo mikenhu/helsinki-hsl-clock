@@ -183,7 +183,7 @@ class Hyperpixel2r:
         return game_font, font_color
 
     def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
-    # Image surface size
+        # Band surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
         obj_padding = 10
