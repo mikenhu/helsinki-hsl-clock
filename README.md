@@ -145,8 +145,8 @@ command_line:
 
 ```yaml
 shell_command:
-  restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[IP] "sudo reboot"'
-  shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[IP] "sudo shutdown -h now"'
+  restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo reboot"'
+  shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo shutdown -h now"'
 ```
 
 ## To do
