@@ -201,7 +201,7 @@ class Hyperpixel2r:
 
         self.screen.blit(self._img_double, (self.top_x, self.top_y))
 
-        if isinstance(self.alert_result, str) and self.alert_result is not None:
+        if isinstance(self.alert_result, str) and self.alert_result is not None and self.alert_result.strip() != "":
             text_surface = render_font(game_font, self.alert_result, font_color)
             text_width = text_surface.get_width()
 
