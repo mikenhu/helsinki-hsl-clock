@@ -182,7 +182,7 @@ class Hyperpixel2r:
         # Band surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
-        obj_padding = 10
+        PADDING = 10
 
         # Update alert if new data in the queue
         if not alert_queue.empty():
@@ -205,8 +205,8 @@ class Hyperpixel2r:
             text_surface = render_font(game_font, self.alert_result, font_color)
             text_width = text_surface.get_width()
 
-            text_x = self.bottom_x + self._img_left.get_width() + obj_padding
-            text_y = self.bottom_y + obj_padding
+            text_x = self.bottom_x + self._img_left.get_width() + PADDING
+            text_y = self.bottom_y + PADDING
 
             text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
 
@@ -215,7 +215,7 @@ class Hyperpixel2r:
 
             self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
             self.screen.blit(text_surface, text_rect)
-            self.screen.blit(self._img_right, (text_x + text_width + obj_padding, self.bottom_y))
+            self.screen.blit(self._img_right, (text_x + text_width + PADDING, self.bottom_y))
         else:
             if self.bottom_x < -150:
                 self.bottom_x = BAND_WIDTH
