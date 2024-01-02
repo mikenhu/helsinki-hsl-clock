@@ -6,24 +6,34 @@ import socket
 import configparser
 import logging
 import sys
+import os
 
 from google.transit import gtfs_realtime_pb2
 
-# Create logger
+# Get the directory path of the script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Define the file path for error logs relative to the script directory
+error_log_file = os.path.join(script_dir, 'error_logs.txt')
+
+# Create a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
-# Create a file handler for warning and higher only
-error_log_file = 'error_logs.txt'
-error_file_handler = logging.FileHandler(error_log_file)
-error_file_handler.setLevel(logging.WARNING)
+# Create the error log file with write permissions
+try:
+    with open(error_log_file, 'a'):  # 'a' mode creates the file if it doesn't exist and appends to it
+        pass  # Do nothing if the file creation is successful
+    # If the file was created successfully, proceed to configure the logger with this file
+    error_file_handler = logging.FileHandler(error_log_file)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    error_file_handler.setFormatter(formatter)
+    logger.addHandler(error_file_handler)
 
-# Create a log formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-error_file_handler.setFormatter(formatter)
-
-# Add the file handler to the logger
-logger.addHandler(error_file_handler)
+    # Log an initial message to confirm successful logger setup
+    logger.info("Error log file created and logger configured successfully.")
+except Exception as e:
+    print(f"Error creating log file: {e}")
 
 def fetch_feed(url):
     MAX_RETRIES = 10
@@ -44,6 +54,7 @@ def fetch_feed(url):
             else:
                 logger.error(f"Client error ({response.status_code}): Cannot fetch feed.")
                 break  # Break the loop for non-retriable errors
+                os.system("sudo reboot")  # Restart the Pi
 
         except requests.exceptions.RequestException as e:
             if isinstance(e, (socket.timeout, requests.exceptions.Timeout)):
@@ -55,6 +66,8 @@ def fetch_feed(url):
 
         except Exception as e:
             logger.exception(f"Unexpected error: {e}.")
+            logger.warning("Restarting Pi due to critical exception.")
+            os.system("sudo reboot")  # Restart Pi for any exception
             break  # Break the loop for unexpected errors
 
         finally:
