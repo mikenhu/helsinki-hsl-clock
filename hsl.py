@@ -1,3 +1,4 @@
+import google.transit.gtfs_realtime_pb2 as gtfs
 import datetime
 import requests
 import json
@@ -7,8 +8,6 @@ import configparser
 import logging
 import sys
 import os
-
-from google.transit import gtfs_realtime_pb2
 
 # Get the directory path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,7 +41,7 @@ def fetch_feed(url):
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             session = requests.Session()
-            feed = gtfs_realtime_pb2.FeedMessage()
+            feed = gtfs.FeedMessage()
             response = session.get(url)
             
             if response.status_code == 200:
@@ -73,7 +72,7 @@ def fetch_feed(url):
             session.close()  # Close the session after each attempt
 
     logger.error("Exceeded maximum retries. Returning empty feed.")
-    return gtfs_realtime_pb2.FeedMessage()
+    return gtfs.FeedMessage()
 
 # Parse data from config.ini file
 class Transit_Config:
@@ -125,7 +124,7 @@ class HSL_Trip_Update:
                     for stop_time_update in entity.trip_update.stop_time_update:
                         # Check if the stop ID of the current stop time update is in the list of stop IDs with names
                         # and if the schedule relationship is "SCHEDULED"
-                        if stop_time_update.stop_id in stop_id_with_names: # and stop_time_update.schedule_relationship == gtfs_realtime_pb2.TripUpdate.StopTimeUpdate.SCHEDULED:
+                        if stop_time_update.stop_id in stop_id_with_names: # and stop_time_update.schedule_relationship == gtfs.TripUpdate.StopTimeUpdate.SCHEDULED:
                             # If it is, get the arrival time for the stop
                             arrival_time = stop_time_update.arrival.time
                             # Convert the arrival time to a datetime object
