@@ -54,7 +54,6 @@ def fetch_feed(url):
             else:
                 logger.error(f"Client error ({response.status_code}): Cannot fetch feed.")
                 break  # Break the loop for non-retriable errors
-                os.system("sudo reboot")  # Restart the Pi
 
         except requests.exceptions.RequestException as e:
             if isinstance(e, (socket.timeout, requests.exceptions.Timeout)):
