@@ -109,7 +109,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
 * That's it for the software. You can run the metro clock as is. Or...
 
-## Add backlight and Pi controls in Home Assistant
+## Add Pi controls in Home Assistant
 
 Having the display on all the time is bad, I decided to integrate the metro clock into my home assistant setup. In HA, you can execute commands to control your Pi with command line and shell command integrations.
 
