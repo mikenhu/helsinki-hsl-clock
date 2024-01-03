@@ -65,11 +65,13 @@ def fetch_feed(url):
                 continue  # Move to the next attempt with a new session
             else:
                 logger.error(f"Request error: {e}.")
+                sys.exit(1)
                 break  # Break the loop for other request errors
 
         except Exception as e:
             logger.exception(f"Unexpected error: {e}.")
             logger.warning("Restarting Pi due to critical exception.")
+            sys.exit(1)
             os.system("sudo reboot")  # Restart Pi for any exception
             break  # Break the loop for unexpected errors
 
