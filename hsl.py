@@ -11,9 +11,12 @@ import os
 
 # Get the directory path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
+logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
+if not os.path.exists(logs_folder):
+    os.makedirs(logs_folder)  # Create the 'logs' folder if it doesn't exist
 
-# Define the file path for error logs relative to the script directory
-error_log_file = os.path.join(script_dir, 'error_logs.txt')
+# Define the file path for error logs within the 'logs' folder
+error_log_file = os.path.join(logs_folder, 'error_logs.txt')
 
 # Configure basic logging with log rotation settings
 logging.basicConfig(
@@ -21,7 +24,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.handlers.TimedRotatingFileHandler(
-            error_log_file, when='D', interval=1, backupCount=30
+            error_log_file, when='W', interval=1, backupCount=4
         )
     ]
 )
