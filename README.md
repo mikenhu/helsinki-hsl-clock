@@ -122,7 +122,7 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 * Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]`
 * Try to ssh into your Pi from your HA `ssh -i /config/.ssh/id_rsa pi@[Host]` and see if it works without a login.
 
-### Create the display switches in Home Assistant
+### Create the switches and buttons in Home Assistant
 
 Copy my config below and make it match your network setup.
 
