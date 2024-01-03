@@ -8,14 +8,14 @@ The project calls to Helsinki Region Transport (HSL) which uses GTFS Realtime fe
 
 If you're interested in controlling this clock with Home Assistant, I include my HA configuration here as well.
 
-Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>.
+Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>
 
 ## Used hardware
 
 * [Hyperpixel 2.1 Round](https://shop.pimoroni.com/products/hyperpixel-round?variant=39381081882707)
 * [Mounting Screws](https://shop.pimoroni.com/products/short-pi-standoffs-for-hyperpixel-round?variant=39384564236371) - Optional
 * [Raspberry Pi Zero 2 WH](https://shop.pimoroni.com/products/raspberry-pi-zero-w?variant=39458414297171)
-* Micro SD Card - Use a high endurance card, cheap ones didn't last as long in my experience.
+* Micro SD Card - Use a high endurance card, cheap ones didn't last long in my experience.
 * [3D Printed Case](https://cults3d.com/en/3d-model/gadget/sphere-enclosure-w-bump-legs-m3o101-for-pimoroni-hyperpixel-2-1-round-touch-and-raspberry-pi)
 * Angled micro USB cable - Optional
 * USB power plug.
@@ -33,13 +33,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   * `Enable SSH` → `Use password authentication`.
   * `Set username and password` → Leave the username as `pi` (if you must change it, you'll need to update `metro.sh`) but set a password.
   * `Configure wifi` → Enter your Wi-Fi details.
-  * `Save` when you're done
+  * `Save` when you're done.
 * Click `Write` and wait for the OS to be written to your SD Card
 * Insert it into your Pi Zero 2 W, connect it to power and give it a few minutes to complete the first boot.  
 
 ### Get your stop and route ids
 
-* Get your stop and route ids from here <https://transitfeeds.com/p/helsinki-regional-transport/735/latest/stops>.
+* Get your stop and route ids from here <https://transitfeeds.com/p/helsinki-regional-transport/735/latest/stops>
 * The API endpoints in this repo are taken from here <https://hsldevcom.github.io/gtfs_rt/>
 
 ### Installing the software
@@ -101,7 +101,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
   
   ```bash
-  # Fix issue where the Pi restart but sometimes the Hyperpixel does not have screen output
+  # Fix issue Hyperpixel display does not initiate after a restart resulting a blank output.
   /usr/bin/hyperpixel2r-init &
   bash metro.sh &>/dev/null
   ```
@@ -116,7 +116,7 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 ### Access your Pi from Home Assistant
 
 * SSH into your HA host `ssh root@homeassistant.local` or you can use the Terminal add-on on HA.
-* Create folder `mkdir /config/.ssh`.
+* Create folder to store the public key`mkdir /config/.ssh`.
 * Create a public key `ssh-keygen`.
 * Tell it to store it in `/config/.ssh/id_rsa`. Do not set a password for the key!
 * Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]`
@@ -149,7 +149,7 @@ shell_command:
 
 ## To do
 
-* Improve display_times().
+* Refactor display_times().
 * Scrolling stop names.
 * Error handling for API calls.
-* Improve performance (Multicore processes?).
+* Improve performance with multiprocessing instead of threading(?).
