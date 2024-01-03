@@ -20,6 +20,15 @@ if not os.path.exists(logs_folder):
 # Define the file path for error logs within the 'logs' folder
 error_log_file = os.path.join(logs_folder, 'error_logs.txt')
 
+# Create 'logs' folder and grant write access to the folder and log file
+try:
+    os.makedirs(logs_folder, exist_ok=True)  # Create 'logs' folder if it doesn't exist
+    os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
+    with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
+        os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
+except Exception as e:
+    print(f"Error setting permissions: {e}")
+
 # Create a logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Set the logging level
