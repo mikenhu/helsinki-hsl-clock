@@ -53,7 +53,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   sudo systemctl disable dphys-swapfile
   ```
 
-* Check whether swap is removed completely with this command `free`
+  Check whether swap is removed completely with this command `free`
 
 * Install git:
 
@@ -86,7 +86,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 -y
   ```
 
-* You can now configure your config file with your own details. Run these commands:
+* You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
   * Edit the file with your stop ids, route id, direction names, and language for service alerts as you wish. It should be formatted like this:
 
