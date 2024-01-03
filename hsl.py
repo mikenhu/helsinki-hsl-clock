@@ -9,6 +9,8 @@ import logging
 import sys
 import os
 
+from logging.handlers import TimedRotatingFileHandler
+
 # Get the directory path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
@@ -18,19 +20,22 @@ if not os.path.exists(logs_folder):
 # Define the file path for error logs within the 'logs' folder
 error_log_file = os.path.join(logs_folder, 'error_logs.txt')
 
-# Configure basic logging with log rotation settings
-logging.basicConfig(
-    level=logging.WARNING,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.handlers.TimedRotatingFileHandler(
-            error_log_file, when='W', interval=1, backupCount=4
-        )
-    ]
-)
-
 # Create a logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)  # Set the logging level
+
+# Create a TimedRotatingFileHandler for log rotation
+handler = TimedRotatingFileHandler(
+    error_log_file, when='W0', interval=1, backupCount=4
+)
+handler.setLevel(logging.WARNING)  # Set the handler's logging level
+
+# Define a log formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)  # Apply the formatter to the handler
+
+# Add the handler to the logger
+logger.addHandler(handler)
 
 try:
     # Log an initial message to confirm successful logger setup
