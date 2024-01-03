@@ -121,7 +121,9 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ## Add Pi controls in Home Assistant
 
-Having the display on all the time is bad, I decided to integrate the metro clock into my home assistant setup. In HA, you can execute commands to control your Pi with command line and shell command integrations.
+* Having the LCD always on is bad, I decided to integrate this metro clock into my home assistant setup.
+
+* In HA, you can execute CLI commands to control your Pi with command line and shell command integrations.
 
 ### Access your Pi from Home Assistant
 
