@@ -61,7 +61,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   sudo reboot
   ```
 
-* Download the code and move into the director:  
+* Download the code and move into the folder:  
 
   ```cli
   git clone https://github.com/mikenhu/hsl-metro-clock
