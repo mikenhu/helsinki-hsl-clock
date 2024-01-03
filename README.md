@@ -4,7 +4,7 @@ I came across [this tweet on X](https://twitter.com/eddible/status/1564917603180
 
 ![Demo GIF](photos/demo.gif)
 
-The project calls to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. If you are not living in Finland, I believe you can adapt this repo to other GTFS feeds with minor modifications.
+The project requests to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. If you are not living in Finland, I believe you can adapt this repo to other GTFS feeds with minor modifications.
 
 If you're interested in controlling this clock with Home Assistant, I include my HA configuration here as well.
 
@@ -45,6 +45,16 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 ### Installing the software
 
 * SSH into your Pi.
+* Disable swap to reduce the SD card wear and also speed up system response time
+  
+  ```cli
+  sudo dphys-swapfile swapoff
+  sudo dphys-swapfile uninstall
+  sudo systemctl disable dphys-swapfile
+  ```
+
+* Check whether swap is removed completely with this command `free`
+
 * Install git:
 
   ```cli
