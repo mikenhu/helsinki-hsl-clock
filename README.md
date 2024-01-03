@@ -49,7 +49,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
   ```cli
   sudo apt-get update
-  sudo apt install git
+  sudo apt install git -y
   ```
 
 * Install the display driver then reboot:
