@@ -2,6 +2,8 @@
 
 I came across [this tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) and was inspired to create one for myself.
 
+![Demo GIF](photos/demo.gif)
+
 The project calls to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. If you are not living in Finland, I believe you can adapt this repo to other GTFS feeds with minor modifications.
 
 If you're interested in controlling this clock with Home Assistant, I include my HA configuration here as well.
@@ -147,4 +149,7 @@ shell_command:
 
 ## To do
 
+* Improve display_times().
 * Scrolling stop names.
+* Error handling for API calls.
+* Improve performance (Multicore processes?).
