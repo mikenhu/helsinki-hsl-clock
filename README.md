@@ -136,7 +136,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Create the switches and buttons in Home Assistant
 
-Copy my config below and make it match your network setup.
+Copy my config below into your `configuration.yaml` file and make it match your network setup.
 
 * Command line
 
