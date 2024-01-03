@@ -15,22 +15,21 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Define the file path for error logs relative to the script directory
 error_log_file = os.path.join(script_dir, 'error_logs.txt')
 
+# Configure basic logging with log rotation settings
+logging.basicConfig(
+    level=logging.WARNING,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.handlers.TimedRotatingFileHandler(
+            error_log_file, when='D', interval=1, backupCount=30
+        )
+    ]
+)
+
 # Create a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
 
 try:
-    # Create a rotating file handler that rotates logs daily and keeps logs for a month (30 days)
-    file_handler = TimedRotatingFileHandler(error_log_file, when='D', interval=1, backupCount=30)
-    file_handler.setLevel(logging.WARNING)
-
-    # Define a log formatter
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the rotating file handler to the logger
-    logger.addHandler(file_handler)
-
     # Log an initial message to confirm successful logger setup
     logger.info("Error log file created and logger configured successfully.")
 except Exception as e:
