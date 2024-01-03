@@ -22,7 +22,7 @@ error_log_file = os.path.join(logs_folder, 'error_logs.txt')
 
 # Create a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)  # Set the logging level
+logger.setLevel(logging.DEBUG)  # Set the logging level
 
 # Create a TimedRotatingFileHandler for log rotation
 handler = TimedRotatingFileHandler(
