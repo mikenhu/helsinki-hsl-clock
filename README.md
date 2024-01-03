@@ -76,12 +76,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 * You can now configure your config file with your own details. Run these commands:
   * `nano config.ini`
-  * Edit the file with your stop ids, route id, and defined direction names as you wish. It should be formatted like this:
+  * Edit the file with your stop ids, route id, direction names, and language for service alerts as you wish. It should be formatted like this:
 
     ```ini
     [HSL-CONFIG]
     stop_id_with_names = {"1541602": "West", "1541601": "East"}
-    route_id_metro = 31M
+    route_id_metro = "31M"
+    language = "en"
     trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
     service_alerts_url = https://realtime.hsl.fi/realtime/service-alerts/v2/hsl
     ```
@@ -110,7 +111,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 Having the display on all the time is bad, I decided to integrate the metro clock into my home assistant setup. In HA, you can execute commands to control your Pi with command line and shell command integrations.
 
-### Access your Pi from HA
+### Access your Pi from Home Assistant
 
 * SSH into your HA host `ssh root@homeassistant.local` or you can use the Terminal add-on on HA.
 * Create folder `mkdir /config/.ssh`.
@@ -119,7 +120,7 @@ Having the display on all the time is bad, I decided to integrate the metro cloc
 * Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]`
 * Try to ssh into your Pi from your HA `ssh -i /config/.ssh/id_rsa pi@[Host]` and see if it works without a login.
 
-### Create the switches in HA
+### Create the display switches in Home Assistant
 
 Copy my config below and make it match your network setup.
 

@@ -17,23 +17,26 @@ error_log_file = os.path.join(script_dir, 'error_logs.txt')
 
 # Create a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.WARNING)
 
-# Create the error log file with write permissions
 try:
-    with open(error_log_file, 'a'):  # 'a' mode creates the file if it doesn't exist and appends to it
-        pass  # Do nothing if the file creation is successful
-    # If the file was created successfully, proceed to configure the logger with this file
-    error_file_handler = logging.FileHandler(error_log_file)
+    # Create a rotating file handler that rotates logs daily and keeps logs for a month (30 days)
+    file_handler = TimedRotatingFileHandler(error_log_file, when='D', interval=1, backupCount=30)
+    file_handler.setLevel(logging.WARNING)
+
+    # Define a log formatter
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    error_file_handler.setFormatter(formatter)
-    logger.addHandler(error_file_handler)
+    file_handler.setFormatter(formatter)
+
+    # Add the rotating file handler to the logger
+    logger.addHandler(file_handler)
 
     # Log an initial message to confirm successful logger setup
     logger.info("Error log file created and logger configured successfully.")
 except Exception as e:
     print(f"Error creating log file: {e}")
 
+# API call
 def fetch_feed(url):
     MAX_RETRIES = 10
     logger = logging.getLogger(__name__)
@@ -57,10 +60,13 @@ def fetch_feed(url):
         except requests.exceptions.RequestException as e:
             if isinstance(e, (socket.timeout, requests.exceptions.Timeout)):
                 logger.error(f"Timeout error: {e}. Retrying attempt {attempt}...")
+            elif isinstance(e, requests.exceptions.ConnectionError):
+                logger.error(f"Connection error: {e}. Retrying attempt {attempt}...")
+                time.sleep(5 ** attempt)  # Exponential backoff for connection errors
+                continue  # Move to the next attempt with a new session
             else:
                 logger.error(f"Request error: {e}.")
-            time.sleep(5 ** attempt)  # Exponential backoff
-            continue  # Move to the next attempt with a new session
+                break  # Break the loop for other request errors
 
         except Exception as e:
             logger.exception(f"Unexpected error: {e}.")
@@ -76,11 +82,12 @@ def fetch_feed(url):
 
 # Parse data from config.ini file
 class Transit_Config:
-    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url):
+    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url, language):
         self.stop_id_with_names = stop_id_with_names
         self.route_id_metro = route_id_metro
         self.trip_update_url = trip_update_url
         self.service_alerts_url = service_alerts_url
+        self.language = language
     
     @staticmethod
     def get_config():
@@ -90,7 +97,7 @@ class Transit_Config:
             logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
-        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro"]
+        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro", "language"]
         configured_values = {}
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
@@ -102,7 +109,7 @@ class Transit_Config:
 
         return Transit_Config(**configured_values)
 
-# Parse data from fetching trip data
+# Parse data from API trip data
 class HSL_Trip_Update:
     def __init__(self, transit_config):
         self.transit_config = transit_config
@@ -163,7 +170,7 @@ class HSL_Trip_Update:
         else:
             logger.warning("Trip status fetch did not return any data.")
 
-# Parse data from fetching service alert
+# Parse data from API service alert
 class HSL_Service_Alert:
     def __init__(self, transit_config):
         self.transit_config = transit_config
@@ -183,7 +190,7 @@ class HSL_Service_Alert:
                         # get the route id of the informed entity
                         route_id = informed_entity.route_id
                         # check if the route id is part of the metro routes
-                        if route_id.startswith(self.transit_config.route_id_metro):
+                        if route_id.startswith(self.transit_config.route_id_metro.strip('\"')):
                             # convert the start and end times to datetime objects
                             start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
                             end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
@@ -191,11 +198,11 @@ class HSL_Service_Alert:
                             active_period_str = f"({start_time:%d/%m/%Y %H:%M} - {end_time:%d/%m/%Y %H:%M})"
                             # iterate over the translations of the description text for the alert
                             for translation in entity.alert.description_text.translation:
-                                # check if the language of the translation is English
-                                if translation.language == 'en':
+                                # check if the language of the translation matches selected language
+                                if translation.language == self.transit_config.language.strip('\"'):
                                     # create the alert message by combining the translation text and the active period string
                                     alert_message = f"{translation.text} {active_period_str}"
-                                    # exit the loop early since we have found the English translation we need
+                                    # exit the loop early since we have found the translation we need
                                     break
                             # exit the loop early since we have found an informed entity whose route id starts with the correct prefix
                             break
