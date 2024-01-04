@@ -10,6 +10,13 @@ If you're interested in controlling this clock with Home Assistant, I include my
 
 Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>
 
+## Features
+
+* Display metro timetables.
+* Display service alerts.
+* Utilize Pi's quad-core system.
+* API call error handlings.
+
 ## Used hardware
 
 * [Hyperpixel 2.1 Round](https://shop.pimoroni.com/products/hyperpixel-round?variant=39381081882707)
@@ -190,7 +197,7 @@ shell_command:
 
 ## To do
 
-* Refactor display_times().
-* Scrolling stop names.
-* Error handling for API calls.
-* Improve performance with multiprocessing instead of threading(?).
+* Refactor display_times(). Half way done
+* Scrolling stop names. 
+* Error handling for API calls. Done
+* Improve performance with multiprocessing instead of threading(?). Done

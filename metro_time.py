@@ -272,15 +272,12 @@ class Hyperpixel2r:
             self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
     # API calls will be done in other processes to optimize the unused cores
-    def update_process(self, process_desc, stop_flag, updater_func, updater_args, interval, queue=None):
+    def update_process(self, process_desc, stop_flag, updater_func, updater_args, interval, queue):
         try:
             while not stop_flag.is_set():
                 try:
-                    if queue is None:
-                        updater_func(*updater_args)
-                    else:
-                        result = updater_func(*updater_args)
-                        queue.put(result)
+                    result = updater_func(*updater_args)
+                    queue.put(result)
                     # Synchronize sleep with stop_flag.wait() for a specific interval
                     stop_flag.wait(interval)
                 except KeyboardInterrupt:
