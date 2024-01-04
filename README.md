@@ -127,12 +127,43 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Access your Pi from Home Assistant
 
-* SSH into your HA host `ssh root@homeassistant.local` or you can use the Terminal add-on on HA.
-* Create folder to store the public key`mkdir /config/.ssh`.
-* Create a public key `ssh-keygen`.
+* Use the `Advanced SSH & Web Terminal` community add-on on HA. Make sure *Protection mode* is off.
+* Create folder to store the public key
+
+  ```cli
+  mkdir /config/.ssh
+  ```
+
+* Create a public key.
+
+  ```cli
+  ssh-keygen -t rsa
+  ```
+
 * Tell it to store it in `/config/.ssh/id_rsa`. Do not set a password for the key!
-* Copy the created key to your Pi `ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]`
-* Try to ssh into your Pi from your HA `ssh -i /config/.ssh/id_rsa pi@[Host]` and see if it works without a login.
+* Copy the created key to your Pi
+
+  ```cli
+  ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]
+  ```
+
+* Copy known_hosts from `/root/.ssh` to `/config/.ssh/` folder 
+
+  ```cli
+  cp /root/.ssh/known_hosts /config/.ssh/
+  ```
+
+* Try to ssh into your Pi from your HA and see if it works without a login.
+
+  ```cli
+  ssh -i /config/.ssh/id_rsa pi@[Host]
+  ```
+
+* Make sure the correct permissions are set on the `~/.ssh directory` and the `~/.ssh/authorized_keys` file on the Pi. 
+
+  ```cli
+  ssh -i /config/.ssh/id_rsa pi@[Host] "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+  ```
 
 ### Create the switches and buttons in Home Assistant
 
@@ -145,9 +176,9 @@ command_line:
   - switch:
       name: Metro Dashboard Screen
       unique_id: metro_dashboard_screen
-      command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
-      command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
-      command_state: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
+      command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
+      command_state: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
       value_template: '{{ value == "0" }}'
 ```
 
@@ -155,8 +186,8 @@ command_line:
 
 ```yaml
 shell_command:
-  restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo reboot"'
-  shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -i /config/.ssh/id_rsa -o UserKnownHostsFile=/root/.ssh/known_hosts -q pi@[Host] "sudo shutdown -h now"'
+  restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo reboot"'
+  shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo shutdown -h now"'
 ```
 
 ## To do
