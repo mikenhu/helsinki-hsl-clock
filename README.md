@@ -198,6 +198,6 @@ shell_command:
 ## To do
 
 * Refactor display_times(). Half way done
-* Scrolling stop names. 
+* Scrolling stop names.
 * Error handling for API calls. Done
 * Improve performance with multiprocessing instead of threading(?). Done
