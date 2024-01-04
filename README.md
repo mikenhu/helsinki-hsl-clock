@@ -141,13 +141,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   ```
 
 * Tell it to store it in `/config/.ssh/id_rsa`. Do not set a password for the key!
-* Copy the created key to your Pi
+* Copy the created key to your Pi.
 
   ```cli
   ssh-copy-id -i /config/.ssh/id_rsa pi@[Host]
   ```
 
-* Copy known_hosts from `/root/.ssh` to `/config/.ssh/` folder 
+* Copy known_hosts from `/root/.ssh` to `/config/.ssh/` folder.
 
   ```cli
   cp /root/.ssh/known_hosts /config/.ssh/
@@ -159,7 +159,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   ssh -i /config/.ssh/id_rsa pi@[Host]
   ```
 
-* Make sure the correct permissions are set on the `~/.ssh directory` and the `~/.ssh/authorized_keys` file on the Pi. 
+* Make sure the correct permissions are set on the `~/.ssh directory` and the `~/.ssh/authorized_keys` file on the Pi.
 
   ```cli
   ssh -i /config/.ssh/id_rsa pi@[Host] "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
