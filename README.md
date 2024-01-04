@@ -159,7 +159,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   ssh -i /config/.ssh/id_rsa pi@[Host]
   ```
 
-* Make sure the correct permissions are set on the `~/.ssh directory` and the `~/.ssh/authorized_keys` file on the Pi.
+* Make sure the correct permissions are set on the `~/.ssh` directory and the `~/.ssh/authorized_keys` file on the Pi.
 
   ```cli
   ssh -i /config/.ssh/id_rsa pi@[Host] "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
