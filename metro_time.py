@@ -4,7 +4,7 @@ import sys
 import signal
 import pygame
 import time
-import threading
+import multiprocessing
 import queue
 
 from hsl import *
@@ -44,9 +44,10 @@ class Hyperpixel2r:
         self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
 
         # Initiate alert message
+        self.trip_status = None
         self.alert_result = None
-        # Define a flag to stop threads gracefully later
-        self.stop_flag = threading.Event()
+        # Define a flag to stop processes gracefully later
+        self.stop_flag = multiprocessing.Event()
         
         # Set top and bottom bands starting coordinations
         self.top_x = 480
@@ -130,44 +131,9 @@ class Hyperpixel2r:
         fbdev = os.getenv("SDL_FBDEV", "/dev/fb0")
         with open(fbdev, "wb") as fb:
             fb.write(self.screen.convert(16, 0).get_buffer())
-
-    # This code defines a function called blit_screen that takes in an array as its argument. 
-    # The function sets up several variables at the beginning:
-        # spacer is set to 70 and determines the size of the space between array items.
-        # top_row is set to 120 and determines the position of the first item on the screen.
-        # l and r are set to 50 and 120, respectively, and determine the starting position for the first item.
-        # row is set to 0 and is used to keep track of the current row number.
-    # The blit method is used to draw an image onto the screen object at the specified coordinates.
-    # After the blit call, the value of r is increased by spacer, and the value of row is incremented by 1. 
-    # If row is equal to 4, the values of row and l are reset to 0 and 270, respectively, and r is set to top_row again.
-    # This process continues until all array items have been processed. The blit_screen function does not return any value.
-    def blit_screen(self, items):
-        # Set the size of the space between items and the position of the first item
-        spacer = 70
-        top_row = 120
-
-        # Set the starting position for the first item
-        l = 50
-        r = top_row
-
-        # Initialize the row counter
-        row = 0
-
-        # Iterate over the items in the array
-        for index, item in enumerate(items):
-            # Blit the item onto the screen at the specified position
-            self.screen.blit(items[index], (l, r))
-
-            # Increment the row position and row counter
-            r += spacer
-            row += 1
-
-            # If we have reached the fourth row, reset the position and row counter
-            if row == 4:
-                row = 0
-                l = 270
-                r = top_row
     
+    #--------------- Code for the clock starts here --------------------#
+
     def setup_fonts(self):
         pygame.font.init()
         # Credit for this font: https://github.com/chrisys/train-departure-display/tree/main/src/fonts
@@ -177,6 +143,90 @@ class Hyperpixel2r:
         font_color = (250, 250, 0)
 
         return game_font, font_color
+
+    def trip_table(self, trip_queue, game_font, font_color, clear_color=(0, 0, 0)):
+        # Get the current trip status
+        current_trip_status = self.trip_status
+
+        # Update alert if new data in the queue
+        if not trip_queue.empty():
+            new_trip_status = trip_queue.get()
+            # print(new_trip_status)
+            if current_trip_status != new_trip_status:
+                self.trip_status = new_trip_status
+        
+        if self.trip_status is not None:
+            # Clear screen before rendering new data
+            pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
+
+            results = {
+                'first_metro_incoming': check_for_value(self.trip_status[0], "Incoming"),
+                'second_metro_incoming': check_for_value(self.trip_status[1], "Incoming"),
+                'first_metro_next': check_for_value(self.trip_status[0], "Next"),
+                'second_metro_next': check_for_value(self.trip_status[1], "Next"),
+                'first_metro_dest': check_for_value(self.trip_status[0], "Destination"),
+                'second_metro_dest': check_for_value(self.trip_status[1], "Destination")
+            }
+
+            truncate = 6
+            dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
+                    for result in [results['first_metro_dest'], results['second_metro_dest']]]
+            first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
+
+            first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
+            second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
+            first_metro_text = "Next"
+            second_metro_text = "Next"
+            first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
+            second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
+
+            first_metro_dest = render_font(game_font, first_metro_dest, font_color)
+            second_metro_dest = render_font(game_font, second_metro_dest, font_color)
+            first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
+            second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
+            first_metro_text = render_font(game_font, first_metro_text, font_color)
+            second_metro_text = render_font(game_font, second_metro_text, font_color)
+            first_metro_next = render_font(game_font, first_metro_next, font_color)
+            second_metro_next = render_font(game_font, second_metro_next, font_color)
+
+            # self.blit_screen(
+            time_table = [
+                    first_metro_dest,
+                    first_metro_incoming,
+                    first_metro_text,
+                    first_metro_next,
+                    second_metro_dest,
+                    second_metro_incoming,
+                    second_metro_text,
+                    second_metro_next,
+                ]
+            # )
+
+            # Set the size of the space between items and the position of the first item
+            spacer = 70
+            top_row = 120
+
+            # Set the starting position for the first item
+            l = 50
+            r = top_row
+
+            # Initialize the row counter
+            row = 0
+
+            # Iterate over the items in the array
+            for index, item in enumerate(time_table):
+                # Blit the item onto the screen at the specified position
+                self.screen.blit(time_table[index], (l, r))
+
+                # Increment the row position and row counter
+                r += spacer
+                row += 1
+
+                # If we have reached the fourth row, reset the position and row counter
+                if row == 4:
+                    row = 0
+                    l = 270
+                    r = top_row
 
     def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Band surface size
@@ -221,18 +271,23 @@ class Hyperpixel2r:
                 self.bottom_x = BAND_WIDTH
             self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
 
-    def update_thread(self, thread_desc, stop_flag, updater_func, updater_args, interval, queue=None):
-        while self._running:
-            if stop_flag.is_set():
-                break  # Exit the loop if stop_flag is set
-            if queue is None:
-                updater_func(*updater_args)
-            else:
-                result = updater_func(*updater_args)
-                queue.put(result)
-            # Synchronize sleep with stop_flag.wait() for a specific interval
-            stop_flag.wait(interval)
-        print(f"{thread_desc} thread stopped.")
+    # API calls will be done in other processes to optimize the unused cores
+    def update_process(self, process_desc, stop_flag, updater_func, updater_args, interval, queue=None):
+        try:
+            while not stop_flag.is_set():
+                try:
+                    if queue is None:
+                        updater_func(*updater_args)
+                    else:
+                        result = updater_func(*updater_args)
+                        queue.put(result)
+                    # Synchronize sleep with stop_flag.wait() for a specific interval
+                    stop_flag.wait(interval)
+                except KeyboardInterrupt:
+                    break  # Exit the loop if KeyboardInterrupt occurs
+        except Exception as e:
+            print(f"Exception occurred in {process_desc} update process: {e}")
+        print(f"{process_desc} update process stopped.")
 
     def run(self):
         config = Transit_Config.get_config()
@@ -241,14 +296,15 @@ class Hyperpixel2r:
 
         game_font, font_color = self.setup_fonts()
 
-        alert_queue = queue.Queue() # Initialize the alert queue
-        stop_flag = self.stop_flag # Stop thread flag
+        trip_queue = multiprocessing.Queue() # Initialize the trip status queue
+        alert_queue = multiprocessing.Queue() # Initialize the alert queue
+        stop_flag = self.stop_flag # Stop update process flag
 
-        trip_update_thread = threading.Thread(target=self.update_thread, args=("Metro status", stop_flag, display_times, (trip_status, game_font, font_color), 15))
-        alert_update_thread = threading.Thread(target=self.update_thread, args=("Service alert", stop_flag, display_alert, (service_message,), 300, alert_queue))
+        trip_update_process = multiprocessing.Process(target=self.update_process, args=("Metro status", stop_flag, fetch_times, (trip_status,), 15, trip_queue))
+        alert_update_process = multiprocessing.Process(target=self.update_process, args=("Service alert", stop_flag, fetch_alerts, (service_message,), 300, alert_queue))
 
-        trip_update_thread.start()
-        alert_update_thread.start()
+        trip_update_process.start()
+        alert_update_process.start()
 
         signal.signal(signal.SIGINT, self._exit)
 
@@ -257,6 +313,7 @@ class Hyperpixel2r:
                 if event.type == pygame.QUIT:
                     self._running = False
 
+            self.trip_table(trip_queue, game_font, font_color)
             self.scrolling_objects_loop(alert_queue, game_font, font_color)
 
             if self._rawfb:
@@ -267,65 +324,23 @@ class Hyperpixel2r:
                 self._clock.tick(60) # 60fps
 
         stop_flag.set()
-        trip_update_thread.join(timeout=10)
-        alert_update_thread.join(timeout=10)
+        
+        trip_update_process.join()
+        alert_update_process.join()
+        
         pygame.quit()
         sys.exit(0)
 
-def display_times(trip_status, game_font, font_color):
+def fetch_times(trip_status):
 
-    statuses = trip_status.metro_status()
+    status = trip_status.metro_status()
 
-    if not statuses:
+    if not status:
         return False
 
-    results = {
-        'first_metro_incoming': check_for_value(statuses[0], "Incoming"),
-        'second_metro_incoming': check_for_value(statuses[1], "Incoming"),
-        'first_metro_next': check_for_value(statuses[0], "Next"),
-        'second_metro_next': check_for_value(statuses[1], "Next"),
-        'first_metro_dest': check_for_value(statuses[0], "Destination"),
-        'second_metro_dest': check_for_value(statuses[1], "Destination")
-    }
+    return status
 
-    truncate = 6
-    dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
-            for result in [results['first_metro_dest'], results['second_metro_dest']]]
-    first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
-
-    first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
-    second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
-    first_metro_text = "Next"
-    second_metro_text = "Next"
-    first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
-    second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
-
-    first_metro_dest = render_font(game_font, first_metro_dest, font_color)
-    second_metro_dest = render_font(game_font, second_metro_dest, font_color)
-    first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
-    second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
-    first_metro_text = render_font(game_font, first_metro_text, font_color)
-    second_metro_text = render_font(game_font, second_metro_text, font_color)
-    first_metro_next = render_font(game_font, first_metro_next, font_color)
-    second_metro_next = render_font(game_font, second_metro_next, font_color)
-        
-    # Clear screen before rendering new data
-    pygame.draw.rect(display.screen, (0, 0, 0), (0, 102, 480, 287))
-
-    display.blit_screen(
-        [
-            first_metro_dest,
-            first_metro_incoming,
-            first_metro_text,
-            first_metro_next,
-            second_metro_dest,
-            second_metro_incoming,
-            second_metro_text,
-            second_metro_next,
-        ]
-    )
-
-def display_alert(string):
+def fetch_alerts(string):
 
     message = string.service_alert()
 
@@ -343,7 +358,7 @@ def min_or_mins(wait_time):
         else:
             return " mins"
     else:
-        return " "
+        return ""
 
 def check_for_value(obj, key):
     return obj[key] if key in obj else "?"
