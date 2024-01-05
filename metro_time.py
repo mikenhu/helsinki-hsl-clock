@@ -39,11 +39,13 @@ class Hyperpixel2r:
         # Credit for the icon source: https://www.flaticon.com/free-icons/train
         size_single = (512 // 6, 358 // 6)
         size_double = (1050 // 6, 367 // 6)
+        size_square = (512 // 10, 512 // 10)
         self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
         self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
         self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
+        self._img_warning = load_and_scale_image("imgs/warning.png", size_square)
 
-        # Initiate alert message
+        # Initiate queue
         self.trip_status = None
         self.alert_result = None
         # Define a flag to stop processes gracefully later
@@ -181,10 +183,7 @@ class Hyperpixel2r:
             text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
             self.screen.blit(text_surface, (text_x, text_y))
 
-    def trip_table(self, trip_queue, game_font, font_color, scroll_speed=0.5, clear_color=(0, 0, 0)):
-        # Get the current trip status
-        current_trip_status = self.trip_status
-        
+    def trip_table(self, trip_queue, game_font, font_color, scroll_speed=0.5, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
         # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
@@ -199,10 +198,10 @@ class Hyperpixel2r:
 
         self.table_x -= scroll_speed
 
-        # Update alert if new data in the queue
+        # Update if new data in the queue
         if not trip_queue.empty():
             new_trip_status = trip_queue.get()
-            if current_trip_status != new_trip_status:
+            if self.trip_status != new_trip_status:
                 self.trip_status = new_trip_status
         
         if self.trip_status is not None:
@@ -258,16 +257,21 @@ class Hyperpixel2r:
 
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
+       
+        # Calculate the center of the top band rectangle
+        top_band_center_x = (BAND_WIDTH - self._img_warning.get_width()) // 2
+        top_band_center_y = (BAND_HEIGHT - self._img_warning.get_height()) // 2
 
         self.top_band_x += scroll_speed
         self.bottom_band_x -= scroll_speed
 
-        if self.top_band_x > BAND_WIDTH:
-            self.top_band_x = -180
-
-        self.screen.blit(self._img_double, (self.top_band_x, self.top_band_y))
-
         if isinstance(self.alert_result, str) and self.alert_result is not None and self.alert_result.strip() != "":
+            # Render top band with center aligned img
+            self.screen.blit(self._img_warning, (top_band_center_x, top_band_center_y))
+            self.screen.blit(self._img_left, (top_band_center_x - self._img_left.get_width() - PADDING, top_band_center_y))
+            self.screen.blit(self._img_right, (top_band_center_x + self._img_warning.get_width() + PADDING, top_band_center_y))
+
+            # Render bottom band with alert message
             text_surface = render_font(game_font, self.alert_result, font_color)
             text_width = text_surface.get_width()
 
@@ -283,6 +287,12 @@ class Hyperpixel2r:
             self.screen.blit(text_surface, text_rect)
             self.screen.blit(self._img_right, (text_x + text_width + PADDING, self.bottom_band_y))
         else:
+            # # Render top band
+            if self.top_band_x > BAND_WIDTH:
+                self.top_band_x = -180
+            self.screen.blit(self._img_double, (self.top_band_x, self.top_band_y))
+
+            # Render bottom band
             if self.bottom_band_x < -150:
                 self.bottom_band_x = BAND_WIDTH
             self.screen.blit(self._img_double, (self.bottom_band_x, self.bottom_band_y))
