@@ -207,7 +207,7 @@ class Hyperpixel2r:
             )
 
     def text_render(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
-        spacer_width = 10
+        spacer_width = 20
         text_length = text_surface.get_width() + spacer_width
 
         # Scroll text if it's longer than 190px
@@ -312,7 +312,7 @@ class Hyperpixel2r:
 
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
-       
+
         # Calculate the center of the top band rectangle
         top_band_center_x = (BAND_WIDTH - self._img_warning.get_width()) // 2
         top_band_center_y = (BAND_HEIGHT - self._img_warning.get_height()) // 2
