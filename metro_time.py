@@ -50,10 +50,15 @@ class Hyperpixel2r:
         self.stop_flag = multiprocessing.Event()
         
         # Set top and bottom bands starting coordinations
-        self.top_x = 480
-        self.top_y = 40
-        self.bottom_x = -180
-        self.bottom_y = 390
+        self.top_band_x = 480
+        self.top_band_y = 40
+        self.bottom_band_x = -180
+        self.bottom_band_y = 390
+
+        # Set time table box surface
+        self.table_x = 40
+        self.table_y = 300
+        self.start_cell_x = 0
 
         self._running = True
 
@@ -144,10 +149,45 @@ class Hyperpixel2r:
 
         return game_font, font_color
 
-    def trip_table(self, trip_queue, game_font, font_color, clear_color=(0, 0, 0)):
+    def scrolling_text(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
+        spacer_width = 10
+        text_length = text_surface.get_width() + spacer_width
+
+        # Scroll text if it's longer than 190px
+        if text_length - spacer_width > allowed_width:
+            # Calculate the effective x-coordinate for scrolling in the right-to-left direction
+            effective_x = (start_table_x % text_length) - text_length
+            
+            # Define the clipping area
+            clip_area = pygame.Rect(clip_area_x, clip_area_y, allowed_width, text_surface.get_height())
+            
+            # Set the clipping region on the screen
+            self.screen.set_clip(clip_area)
+            
+            # Calculate the position to blit the text within the clipping area
+            start_x = clip_area_x + effective_x
+            
+            # Ensure the text scrolls continuously with a spacer between blits
+            while start_x < clip_area_x + allowed_width:
+                self.screen.blit(text_surface, (start_x, clip_area_y))
+                start_x += text_length
+                
+            # Reset the clipping region
+            self.screen.set_clip(None)
+        else:
+            # Align the text in the middle
+            text_rect = text_surface.get_rect()
+            text_x = clip_area_x + (allowed_width - text_rect.width) // 2
+            text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
+            self.screen.blit(text_surface, (text_x, text_y))
+
+    def trip_table(self, trip_queue, game_font, font_color, scroll_speed=0.5, clear_color=(0, 0, 0)):
         # Get the current trip status
         current_trip_status = self.trip_status
         
+        # Usable rectangle surface is 400x260
+        # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
+        # Minus the middle space (maybe 20px width) -> Should be about (400-20)/2 = 190px width per column
         COL_WIDTH = 190
         COL_HEIGHT = 260
         COL_SPACER = 20
@@ -156,6 +196,8 @@ class Hyperpixel2r:
         LEFT_COL_Y = 115
         RIGHT_COL_X = LEFT_COL_X + COL_SPACER + COL_WIDTH
         RIGHT_COL_Y = LEFT_COL_Y
+
+        self.table_x -= scroll_speed
 
         # Update alert if new data in the queue
         if not trip_queue.empty():
@@ -166,97 +208,50 @@ class Hyperpixel2r:
         
         if self.trip_status is not None:
             # Clear screen before rendering new data
-            # pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
+            pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
 
-            text1 = check_for_value(self.trip_status[0], "Destination")
-            # Kivenlahti
+            # status_item = self.trip_status.item()
 
-            text_surface = render_font(game_font, f"{text1}", font_color)
-            # print(text_surface1.get_width())
-            # text_surface1 width = 215
+            # for key_name, value in self.trip_status.items():
+            #     print(key_name)
+            #     text_surface1 = render_font(game_font, key_name, font_color)
+            #     for time in value:
+            #         print(time)
+            #         text_surface2 = render_font(game_font, time, font_color)
 
-            text2 = check_for_value(self.trip_status[0], "Incoming")
+            items = [
+                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Destination')}", font_color),
+                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Incoming')}", font_color),
+                render_font(game_font, "Next", font_color),
+                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Next')}", font_color),
+                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Destination')}", font_color),
+                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Incoming')}", font_color),
+                render_font(game_font, "Next", font_color),
+                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Next')}", font_color),
+            ]
+            
+            # Initialize the row counter
+            row = 0
+            x = LEFT_COL_X
+            y = LEFT_COL_Y
+            for index, item in enumerate(items):
 
-            text_surface1 = render_font(game_font, f"{text1}", font_color)
-            text_surface2 = render_font(game_font, f"{text2}", font_color)
+                self.scrolling_text(items[index], COL_WIDTH, self.table_x, x, y)
+                y += ROW_SPACER
+                row += 1
+                if row == 4:
+                    row = 0
+                    x = RIGHT_COL_X
+                    y = RIGHT_COL_Y
+            # self.scrolling_text(text_surface1, COL_WIDTH, self.table_x, LEFT_COL_X, LyEFT_COL_Y)
+            # self.scrolling_text(text_surface2, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER)
+            # self.scrolling_text(text_surface3, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER*2)
+            # self.scrolling_text(text_surface4, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER*3)
 
-            text_surface3 = render_font(game_font, f"{text1}", font_color)
-            text_surface4 = render_font(game_font, f"{text1}", font_color)
-
-            text5 = check_for_value(self.trip_status[1], "Destination")
-            text6 = check_for_value(self.trip_status[1], "Incoming")
-
-            text_surface5 = render_font(game_font, f"{text5}", font_color)
-            text_surface6 = render_font(game_font, f"{text6}", font_color)
-            text_surface7 = render_font(game_font, f"{text1}", font_color)
-            text_surface8 = render_font(game_font, f"{text1}", font_color)
-
-            # Usable rectangle surface is 400x260
-            # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
-            # Minus the middle space (maybe 20px width) -> Should be about (400-20)/2 = 190px width per column
-
-            # Column left
-            pygame.draw.rect(self.screen, (0,255,0), (LEFT_COL_X, LEFT_COL_Y, COL_WIDTH, COL_HEIGHT))
-            # Column right
-            pygame.draw.rect(self.screen, (0,0,255), (RIGHT_COL_X, RIGHT_COL_Y, COL_WIDTH, COL_HEIGHT))
-
-
-            self.screen.blit(text_surface1, (LEFT_COL_X, LEFT_COL_Y))
-            self.screen.blit(text_surface2, (LEFT_COL_X, LEFT_COL_Y + ROW_SPACER))
-            # self.screen.blit(text_surface3, (40, 255))
-            # self.screen.blit(text_surface4, (40, 325))
-            self.screen.blit(text_surface5, (RIGHT_COL_X, RIGHT_COL_Y))
-            self.screen.blit(text_surface6, (RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER))
-            # self.screen.blit(text_surface7, (250, 255))
-            # self.screen.blit(text_surface8, (250, 325))
-
-
-        # if self.trip_status is not None:
-        #     # Clear screen before rendering new data
-        #     pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
-
-        #     results = {
-        #         'first_metro_incoming': check_for_value(self.trip_status[0], "Incoming"),
-        #         'second_metro_incoming': check_for_value(self.trip_status[1], "Incoming"),
-        #         'first_metro_next': check_for_value(self.trip_status[0], "Next"),
-        #         'second_metro_next': check_for_value(self.trip_status[1], "Next"),
-        #         'first_metro_dest': check_for_value(self.trip_status[0], "Destination"),
-        #         'second_metro_dest': check_for_value(self.trip_status[1], "Destination")
-        #     }
-
-        #     truncate = 6
-        #     dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
-        #             for result in [results['first_metro_dest'], results['second_metro_dest']]]
-        #     first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
-
-        #     first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
-        #     second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
-        #     first_metro_text = "Next"
-        #     second_metro_text = "Next"
-        #     first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
-        #     second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
-
-        #     first_metro_dest = render_font(game_font, first_metro_dest, font_color)
-        #     second_metro_dest = render_font(game_font, second_metro_dest, font_color)
-        #     first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
-        #     second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
-        #     first_metro_text = render_font(game_font, first_metro_text, font_color)
-        #     second_metro_text = render_font(game_font, second_metro_text, font_color)
-        #     first_metro_next = render_font(game_font, first_metro_next, font_color)
-        #     second_metro_next = render_font(game_font, second_metro_next, font_color)
-
-        #     # self.blit_screen(
-        #     time_table = [
-        #             first_metro_dest,
-        #             first_metro_incoming,
-        #             first_metro_text,
-        #             first_metro_next,
-        #             second_metro_dest,
-        #             second_metro_incoming,
-        #             second_metro_text,
-        #             second_metro_next,
-        #         ]
-        #     # )
+            # self.scrolling_text(text_surface5, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y)
+            # self.scrolling_text(text_surface6, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER)
+            # self.scrolling_text(text_surface7, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER*2)
+            # self.scrolling_text(text_surface8, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER*3)
 
         #     # Set the size of the space between items and the position of the first item
         #     spacer = 70
@@ -284,7 +279,7 @@ class Hyperpixel2r:
         #             l = 270
         #             r = top_row
 
-    def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
+    def scrolling_bands(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Band surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
@@ -299,33 +294,33 @@ class Hyperpixel2r:
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
 
-        self.top_x += scroll_speed
-        self.bottom_x -= scroll_speed
+        self.top_band_x += scroll_speed
+        self.bottom_band_x -= scroll_speed
 
-        if self.top_x > BAND_WIDTH:
-            self.top_x = -180
+        if self.top_band_x > BAND_WIDTH:
+            self.top_band_x = -180
 
-        self.screen.blit(self._img_double, (self.top_x, self.top_y))
+        self.screen.blit(self._img_double, (self.top_band_x, self.top_band_y))
 
         if isinstance(self.alert_result, str) and self.alert_result is not None and self.alert_result.strip() != "":
             text_surface = render_font(game_font, self.alert_result, font_color)
             text_width = text_surface.get_width()
 
-            text_x = self.bottom_x + self._img_left.get_width() + PADDING
-            text_y = self.bottom_y + PADDING
+            text_x = self.bottom_band_x + self._img_left.get_width() + PADDING
+            text_y = self.bottom_band_y + PADDING
 
             text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
 
-            if self.bottom_x < -(150 + text_width):
-                self.bottom_x = BAND_WIDTH
+            if self.bottom_band_x < -(150 + text_width):
+                self.bottom_band_x = BAND_WIDTH
 
-            self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
+            self.screen.blit(self._img_left, (self.bottom_band_x, self.bottom_band_y))
             self.screen.blit(text_surface, text_rect)
-            self.screen.blit(self._img_right, (text_x + text_width + PADDING, self.bottom_y))
+            self.screen.blit(self._img_right, (text_x + text_width + PADDING, self.bottom_band_y))
         else:
-            if self.bottom_x < -150:
-                self.bottom_x = BAND_WIDTH
-            self.screen.blit(self._img_double, (self.bottom_x, self.bottom_y))
+            if self.bottom_band_x < -150:
+                self.bottom_band_x = BAND_WIDTH
+            self.screen.blit(self._img_double, (self.bottom_band_x, self.bottom_band_y))
 
     # API calls will be done in other processes to optimize the unused cores
     def update_process(self, process_desc, stop_flag, updater_func, updater_args, interval, queue):
@@ -367,7 +362,7 @@ class Hyperpixel2r:
                     self._running = False
 
             self.trip_table(trip_queue, game_font, font_color)
-            self.scrolling_objects_loop(alert_queue, game_font, font_color)
+            self.scrolling_bands(alert_queue, game_font, font_color)
 
             if self._rawfb:
                 self._updatefb()
@@ -377,7 +372,6 @@ class Hyperpixel2r:
                 self._clock.tick(60) # 60fps
 
         stop_flag.set()
-        
         trip_update_process.join()
         alert_update_process.join()
         
@@ -402,16 +396,18 @@ def fetch_alerts(string):
 
     return message
 
-# Fix minutes display
-def min_or_mins(wait_time):
-    if wait_time is not None:
-        wait_time = str(wait_time)
-        if wait_time in ['0', '1']:
-            return " min"
-        else:
-            return " mins"
-    else:
-        return ""
+# def check_for_value(obj, key):
+#     if key in obj:
+#         # Check if it is number of minutes
+#         if str(obj[key]).isnumeric():
+#             obj[key] = str(obj[key])
+#             if obj[key] in ['0', '1']:
+#                 return f"{obj[key]} min"
+#             else:
+#                 return f"{obj[key]} mins"
+#         else: 
+#             return obj[key]
+#     else: "?"
 
 def check_for_value(obj, key):
     return obj[key] if key in obj else "?"
