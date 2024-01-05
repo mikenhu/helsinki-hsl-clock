@@ -99,14 +99,10 @@ def fetch_feed(url):
     logger.error("Exceeded maximum retries. Returning empty feed.")
     return gtfs.FeedMessage()
 
-# Circumvent a limitation in Python's multiprocessing module related to pickling
-def execute_func(func):
-    return func()
-
 # Utilize multicores to process data from API
 def process_feed_multicores(fetch_func):
     pool = multiprocessing.Pool(processes=4)
-    result = pool.apply(execute_func, args=(fetch_func,))
+    result = pool.apply(fetch_func)
     pool.close()
     pool.join()
     return result
