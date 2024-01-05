@@ -149,7 +149,7 @@ class Hyperpixel2r:
 
         return game_font, font_color
 
-    def scrolling_text(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
+    def text_render(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
         spacer_width = 10
         text_length = text_surface.get_width() + spacer_width
 
@@ -218,7 +218,7 @@ class Hyperpixel2r:
 
             # Iterate over the dictionary
             for location, times in self.trip_status.items():
-                self.scrolling_text(render_font(game_font,location,font_color), COL_WIDTH, self.table_x, x, y)
+                self.text_render(render_font(game_font,location,font_color), COL_WIDTH, self.table_x, x, y)
                 # Increase the y position and row counter
                 y += ROW_SPACER
                 row += 1
@@ -227,14 +227,14 @@ class Hyperpixel2r:
 
                 for time in times:
                     if item_count < 3:
-                        self.scrolling_text(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                        self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row -= 1
-                        self.scrolling_text(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                        self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row += 1
                     else:
-                        self.scrolling_text(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                        self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                         # Increase the y position and row counter
                         y += ROW_SPACER
                         row += 1
