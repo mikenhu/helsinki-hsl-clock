@@ -150,6 +150,61 @@ class Hyperpixel2r:
         font_color = (250, 250, 0)
 
         return game_font, font_color
+    
+    def trip_status_render(self, trip_queue, game_font, font_color):
+
+        # Update alert if new data in the queue
+        if not trip_queue.empty():
+            new_trip_status = trip_queue.get()
+            if self.trip_status != new_trip_status:
+                self.trip_status = new_trip_status
+        
+        while self.trip_status is not None:
+            results = {
+                'first_metro_incoming': check_for_value(new_trip_status[0], "Incoming"),
+                'second_metro_incoming': check_for_value(new_trip_status[1], "Incoming"),
+                'first_metro_next': check_for_value(new_trip_status[0], "Next"),
+                'second_metro_next': check_for_value(new_trip_status[1], "Next"),
+                'first_metro_dest': check_for_value(new_trip_status[0], "Destination"),
+                'second_metro_dest': check_for_value(new_trip_status[1], "Destination")
+            }
+
+            truncate = 6
+            dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
+                    for result in [results['first_metro_dest'], results['second_metro_dest']]]
+            first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
+
+            first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
+            second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
+            first_metro_text = "Next"
+            second_metro_text = "Next"
+            first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
+            second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
+
+            first_metro_dest = render_font(game_font, first_metro_dest, font_color)
+            second_metro_dest = render_font(game_font, second_metro_dest, font_color)
+            first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
+            second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
+            first_metro_text = render_font(game_font, first_metro_text, font_color)
+            second_metro_text = render_font(game_font, second_metro_text, font_color)
+            first_metro_next = render_font(game_font, first_metro_next, font_color)
+            second_metro_next = render_font(game_font, second_metro_next, font_color)
+                
+            # Clear screen before rendering new data
+            pygame.draw.rect(self.screen, (0, 0, 0), (0, 102, 480, 287))
+
+            self.blit_screen(
+                [
+                    first_metro_dest,
+                    first_metro_incoming,
+                    first_metro_text,
+                    first_metro_next,
+                    second_metro_dest,
+                    second_metro_incoming,
+                    second_metro_text,
+                    second_metro_next,
+                ]
+            )
 
     def text_render(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
         spacer_width = 10
@@ -318,7 +373,7 @@ class Hyperpixel2r:
         service_message = HSL_Service_Alert(config)
 
         game_font, font_color = self.setup_fonts()
-
+        
         trip_queue = multiprocessing.Queue() # Initialize the trip status queue
         alert_queue = multiprocessing.Queue() # Initialize the alert queue
         stop_flag = self.stop_flag # Stop update process flag
@@ -352,7 +407,7 @@ class Hyperpixel2r:
         
         pygame.quit()
         sys.exit(0)
-
+        
 # Passing the instance of the classes along with the method name as a string
 def fetch_data(instance, method_name):
     # Retrieve the method based on the provided method_name from the instance
