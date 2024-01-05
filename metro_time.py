@@ -187,10 +187,10 @@ class Hyperpixel2r:
         
         # Usable rectangle surface is 400x260
         # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
-        # Minus the middle space (maybe 20px width) -> Should be about (400-20)/2 = 190px width per column
+        # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
+        COL_SPACER = 20
         COL_WIDTH = 190
         COL_HEIGHT = 260
-        COL_SPACER = 20
         ROW_SPACER = 70
         LEFT_COL_X = 40
         LEFT_COL_Y = 115
@@ -202,7 +202,6 @@ class Hyperpixel2r:
         # Update alert if new data in the queue
         if not trip_queue.empty():
             new_trip_status = trip_queue.get()
-            # print(new_trip_status)
             if current_trip_status != new_trip_status:
                 self.trip_status = new_trip_status
         
@@ -232,52 +231,21 @@ class Hyperpixel2r:
             
             # Initialize the row counter
             row = 0
+            # Set the starting position for the first item
             x = LEFT_COL_X
             y = LEFT_COL_Y
+            # Iterate over the items in the array
             for index, item in enumerate(items):
-
+                # Blit the item onto the screen at the specified position
                 self.scrolling_text(items[index], COL_WIDTH, self.table_x, x, y)
+                # Increas the y position and row counter
                 y += ROW_SPACER
                 row += 1
+                # If we have reached the fourth row, reset the y position, switch column and row counter
                 if row == 4:
                     row = 0
                     x = RIGHT_COL_X
                     y = RIGHT_COL_Y
-            # self.scrolling_text(text_surface1, COL_WIDTH, self.table_x, LEFT_COL_X, LyEFT_COL_Y)
-            # self.scrolling_text(text_surface2, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER)
-            # self.scrolling_text(text_surface3, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER*2)
-            # self.scrolling_text(text_surface4, COL_WIDTH, self.table_x, LEFT_COL_X, LEFT_COL_Y + ROW_SPACER*3)
-
-            # self.scrolling_text(text_surface5, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y)
-            # self.scrolling_text(text_surface6, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER)
-            # self.scrolling_text(text_surface7, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER*2)
-            # self.scrolling_text(text_surface8, COL_WIDTH, self.table_x + COL_SPACER + COL_WIDTH, RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER*3)
-
-        #     # Set the size of the space between items and the position of the first item
-        #     spacer = 70
-        #     top_row = 120
-
-        #     # Set the starting position for the first item
-        #     l = 50
-        #     r = top_row
-
-        #     # Initialize the row counter
-        #     row = 0
-
-        #     # Iterate over the items in the array
-        #     for index, item in enumerate(time_table):
-        #         # Blit the item onto the screen at the specified position
-        #         self.screen.blit(time_table[index], (l, r))
-
-        #         # Increment the row position and row counter
-        #         r += spacer
-        #         row += 1
-
-        #         # If we have reached the fourth row, reset the position and row counter
-        #         if row == 4:
-        #             row = 0
-        #             l = 270
-        #             r = top_row
 
     def scrolling_bands(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Band surface size
