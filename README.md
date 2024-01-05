@@ -10,6 +10,13 @@ If you're interested in controlling this clock with Home Assistant, I include my
 
 Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>
 
+## Features
+
+* Display metro timetables.
+* Display service alerts.
+* Utilize Pi's quad-core system.
+* API call error handlings.
+
 ## Used hardware
 
 * [Hyperpixel 2.1 Round](https://shop.pimoroni.com/products/hyperpixel-round?variant=39381081882707)
@@ -88,13 +95,20 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 * You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
-  * Edit the file with your stop ids, route id, direction names, and language for service alerts as you wish. It should be formatted like this:
+  * Edit the file as you wish.
+    * ID of the platform and the direction of the metro.
+    * Route id metro.
+    * Language (ISO).
+    * Number of timetable rows you want to have (max 3).
+    * URLs: the APIs of the service.
+  * It should be formatted like this:
 
     ```ini
     [HSL-CONFIG]
     stop_id_with_names = {"1541602": "West", "1541601": "East"}
     route_id_metro = "31M"
     language = "en"
+    time_row_num = 2
     trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
     service_alerts_url = https://realtime.hsl.fi/realtime/service-alerts/v2/hsl
     ```
@@ -111,6 +125,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
   
   ```bash
+  hyperpixel2r-init
   bash metro.sh &>/dev/null
   ```
 
@@ -187,10 +202,3 @@ shell_command:
   restart_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo reboot"'
   shutdown_pi: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo shutdown -h now"'
 ```
-
-## To do
-
-* Refactor display_times().
-* Scrolling stop names.
-* Error handling for API calls.
-* Improve performance with multiprocessing instead of threading(?).
