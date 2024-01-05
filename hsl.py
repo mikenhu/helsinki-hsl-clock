@@ -172,26 +172,49 @@ class HSL_Trip_Update:
         return stop_times
 
     def _process_stop_times(self, stop_times, current_time):
-        stop_times = {
-            stop_id: sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:2]
-            for stop_id, wait_times in stop_times.items()
-        }
-        stop_times = {
-            stop_id: [int(time.total_seconds() / 60) if time.total_seconds() != 0 else None for time in wait_times]
-            for stop_id, wait_times in stop_times.items()
-        }
+        # stop_times = {
+        #     stop_id: sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:2
+        #     for stop_id, wait_times in stop_times.items()
+        # }
+
+        # stop_times = {
+        #     stop_id: [int(time.total_seconds() / 60) if time.total_seconds() != 0 else None for time in wait_times]
+        #     for stop_id, wait_times in stop_times.items()
+        # }
+
+        # result = {
+        #     i: {
+        #         'Destination': dest,
+        #         'Incoming': wait_times[0] if len(wait_times) >= 1 else None,
+        #         'Next': wait_times[1] if len(wait_times) >= 2 else None
+        #     }
+        #     for i, (dest, wait_times) in enumerate(stop_times.items())
+        # }
+
+        stop_times2 = {
+            stop_id: [
+                # Convert timestamp to datetime, calculate waiting time, and format
+                f"{int(time.total_seconds() / 60)} {'mins' if int(time.total_seconds() / 60) > 1 else 'min'}" if time.total_seconds() != 0 else None
+                for time in sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:3]
+                # Process each stop's wait times
+            ]
+            for stop_id, wait_times in stop_times.items()  # Loop through each stop
+        } # 'Kivenlahti': ['6 mins', '12 mins', '20 mins'], 'Vuosaari': ['1 min', '6 mins', '12 mins']}
+        print(stop_times2)
+        # return stop_times
 
         result = {
             i: {
                 'Destination': dest,
-                'Incoming': wait_times[0] if len(wait_times) >= 1 else None,
-                'Next': wait_times[1] if len(wait_times) >= 2 else None
+                'Incoming': wait_times[0],
+                'Next': wait_times[1]
             }
-            for i, (dest, wait_times) in enumerate(stop_times.items())
+            for i, (dest, wait_times) in enumerate(stop_times2.items())
         }
 
         print(result)
         return result
+
 
     def metro_status(self):
         return process_feed_multicores(self.process_feed)
