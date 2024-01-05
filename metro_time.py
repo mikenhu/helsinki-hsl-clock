@@ -313,8 +313,8 @@ class Hyperpixel2r:
         alert_queue = multiprocessing.Queue() # Initialize the alert queue
         stop_flag = self.stop_flag # Stop update process flag
 
-        trip_update_process = multiprocessing.Process(target=self.update_process, args=("Metro status update", stop_flag, fetch_times, (trip_status,), 15, trip_queue))
-        alert_update_process = multiprocessing.Process(target=self.update_process, args=("Service alert update", stop_flag, fetch_alerts, (service_message,), 300, alert_queue))
+        trip_update_process = multiprocessing.Process(target=self.update_process, args=("Metro status update", stop_flag, fetch_data, (trip_status, 'metro_status'), 15, trip_queue))
+        alert_update_process = multiprocessing.Process(target=self.update_process, args=("Service alert update", stop_flag, fetch_data, (service_message, 'service_alert'), 300, alert_queue))
 
         trip_update_process.start()
         alert_update_process.start()
@@ -343,23 +343,19 @@ class Hyperpixel2r:
         pygame.quit()
         sys.exit(0)
 
-def fetch_times(trip_status):
-
-    status = trip_status.metro_status()
-
-    if not status:
-        return False
-
-    return status
-
-def fetch_alerts(string):
-
-    message = string.service_alert()
-
-    if not message:
-        return ""
-
-    return message
+# Passing the instance of the classes along with the method name as a string
+def fetch_data(instance, method_name):
+    # Retrieve the method based on the provided method_name from the instance
+    method = getattr(instance, method_name, None)
+    if method:
+        # If methos exists, call the method and store its result in the result variable
+        result = method()
+        if not result:
+            # If the result is empty, return False if it's a boolean, otherwise return an empty string
+            return False if isinstance(result, bool) else ""
+        return result
+    # If the method doesn't exist, return False
+    return False
 
 def render_font(font, text, font_color, bold=False):
     return font.render(text, bold, font_color)
