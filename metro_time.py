@@ -277,10 +277,9 @@ class Hyperpixel2r:
                 y += ROW_SPACER
                 row += 1
                 item_count = len(times)
-                # print(item_count)
 
                 for time in times:
-                    if item_count < 3:
+                    if 1 < item_count < 3:
                         self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row -= 1
@@ -312,7 +311,7 @@ class Hyperpixel2r:
 
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
-
+       
         # Calculate the center of the top band rectangle
         top_band_center_x = (BAND_WIDTH - self._img_warning.get_width()) // 2
         top_band_center_y = (BAND_HEIGHT - self._img_warning.get_height()) // 2
