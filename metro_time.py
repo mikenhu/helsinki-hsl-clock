@@ -147,6 +147,15 @@ class Hyperpixel2r:
     def trip_table(self, trip_queue, game_font, font_color, clear_color=(0, 0, 0)):
         # Get the current trip status
         current_trip_status = self.trip_status
+        
+        COL_WIDTH = 190
+        COL_HEIGHT = 260
+        COL_SPACER = 20
+        ROW_SPACER = 70
+        LEFT_COL_X = 40
+        LEFT_COL_Y = 115
+        RIGHT_COL_X = LEFT_COL_X + COL_SPACER + COL_WIDTH
+        RIGHT_COL_Y = LEFT_COL_Y
 
         # Update alert if new data in the queue
         if not trip_queue.empty():
@@ -157,76 +166,123 @@ class Hyperpixel2r:
         
         if self.trip_status is not None:
             # Clear screen before rendering new data
-            pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
+            # pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
 
-            results = {
-                'first_metro_incoming': check_for_value(self.trip_status[0], "Incoming"),
-                'second_metro_incoming': check_for_value(self.trip_status[1], "Incoming"),
-                'first_metro_next': check_for_value(self.trip_status[0], "Next"),
-                'second_metro_next': check_for_value(self.trip_status[1], "Next"),
-                'first_metro_dest': check_for_value(self.trip_status[0], "Destination"),
-                'second_metro_dest': check_for_value(self.trip_status[1], "Destination")
-            }
+            text1 = check_for_value(self.trip_status[0], "Destination")
+            # Kivenlahti
 
-            truncate = 6
-            dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
-                    for result in [results['first_metro_dest'], results['second_metro_dest']]]
-            first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
+            text_surface = render_font(game_font, f"{text1}", font_color)
+            # print(text_surface1.get_width())
+            # text_surface1 width = 215
 
-            first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
-            second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
-            first_metro_text = "Next"
-            second_metro_text = "Next"
-            first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
-            second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
+            text2 = check_for_value(self.trip_status[0], "Incoming")
 
-            first_metro_dest = render_font(game_font, first_metro_dest, font_color)
-            second_metro_dest = render_font(game_font, second_metro_dest, font_color)
-            first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
-            second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
-            first_metro_text = render_font(game_font, first_metro_text, font_color)
-            second_metro_text = render_font(game_font, second_metro_text, font_color)
-            first_metro_next = render_font(game_font, first_metro_next, font_color)
-            second_metro_next = render_font(game_font, second_metro_next, font_color)
+            text_surface1 = render_font(game_font, f"{text1}", font_color)
+            text_surface2 = render_font(game_font, f"{text2}", font_color)
 
-            # self.blit_screen(
-            time_table = [
-                    first_metro_dest,
-                    first_metro_incoming,
-                    first_metro_text,
-                    first_metro_next,
-                    second_metro_dest,
-                    second_metro_incoming,
-                    second_metro_text,
-                    second_metro_next,
-                ]
-            # )
+            text_surface3 = render_font(game_font, f"{text1}", font_color)
+            text_surface4 = render_font(game_font, f"{text1}", font_color)
 
-            # Set the size of the space between items and the position of the first item
-            spacer = 70
-            top_row = 120
+            text5 = check_for_value(self.trip_status[1], "Destination")
+            text6 = check_for_value(self.trip_status[1], "Incoming")
 
-            # Set the starting position for the first item
-            l = 50
-            r = top_row
+            text_surface5 = render_font(game_font, f"{text5}", font_color)
+            text_surface6 = render_font(game_font, f"{text6}", font_color)
+            text_surface7 = render_font(game_font, f"{text1}", font_color)
+            text_surface8 = render_font(game_font, f"{text1}", font_color)
 
-            # Initialize the row counter
-            row = 0
+            # Usable rectangle surface is 400x260
+            # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
+            # Minus the middle space (maybe 20px width) -> Should be about (400-20)/2 = 190px width per column
 
-            # Iterate over the items in the array
-            for index, item in enumerate(time_table):
-                # Blit the item onto the screen at the specified position
-                self.screen.blit(time_table[index], (l, r))
+            # Column left
+            pygame.draw.rect(self.screen, (0,255,0), (LEFT_COL_X, LEFT_COL_Y, COL_WIDTH, COL_HEIGHT))
+            # Column right
+            pygame.draw.rect(self.screen, (0,0,255), (RIGHT_COL_X, RIGHT_COL_Y, COL_WIDTH, COL_HEIGHT))
 
-                # Increment the row position and row counter
-                r += spacer
-                row += 1
 
-                # If we have reached the fourth row, reset the position and row counter
-                if row == 4:
-                    row = 0
-                    l = 270
-                    r = top_row
+            self.screen.blit(text_surface1, (LEFT_COL_X, LEFT_COL_Y))
+            self.screen.blit(text_surface2, (LEFT_COL_X, LEFT_COL_Y + ROW_SPACER))
+            # self.screen.blit(text_surface3, (40, 255))
+            # self.screen.blit(text_surface4, (40, 325))
+            self.screen.blit(text_surface5, (RIGHT_COL_X, RIGHT_COL_Y))
+            self.screen.blit(text_surface6, (RIGHT_COL_X, RIGHT_COL_Y + ROW_SPACER))
+            # self.screen.blit(text_surface7, (250, 255))
+            # self.screen.blit(text_surface8, (250, 325))
+
+
+        # if self.trip_status is not None:
+        #     # Clear screen before rendering new data
+        #     pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
+
+        #     results = {
+        #         'first_metro_incoming': check_for_value(self.trip_status[0], "Incoming"),
+        #         'second_metro_incoming': check_for_value(self.trip_status[1], "Incoming"),
+        #         'first_metro_next': check_for_value(self.trip_status[0], "Next"),
+        #         'second_metro_next': check_for_value(self.trip_status[1], "Next"),
+        #         'first_metro_dest': check_for_value(self.trip_status[0], "Destination"),
+        #         'second_metro_dest': check_for_value(self.trip_status[1], "Destination")
+        #     }
+
+        #     truncate = 6
+        #     dests = ["{}..".format(result[:truncate]) if len(result) > truncate else result
+        #             for result in [results['first_metro_dest'], results['second_metro_dest']]]
+        #     first_metro_dest, second_metro_dest = [f"{dest}" for dest in dests]
+
+        #     first_metro_incoming = f"{results['first_metro_incoming']} {min_or_mins(results['first_metro_incoming'])}"
+        #     second_metro_incoming = f"{results['second_metro_incoming']} {min_or_mins(results['second_metro_incoming'])}"
+        #     first_metro_text = "Next"
+        #     second_metro_text = "Next"
+        #     first_metro_next = f"{results['first_metro_next']} {min_or_mins(results['first_metro_next'])}"
+        #     second_metro_next = f"{results['second_metro_next']} {min_or_mins(results['second_metro_next'])}"
+
+        #     first_metro_dest = render_font(game_font, first_metro_dest, font_color)
+        #     second_metro_dest = render_font(game_font, second_metro_dest, font_color)
+        #     first_metro_incoming = render_font(game_font, first_metro_incoming, font_color)
+        #     second_metro_incoming = render_font(game_font, second_metro_incoming, font_color)
+        #     first_metro_text = render_font(game_font, first_metro_text, font_color)
+        #     second_metro_text = render_font(game_font, second_metro_text, font_color)
+        #     first_metro_next = render_font(game_font, first_metro_next, font_color)
+        #     second_metro_next = render_font(game_font, second_metro_next, font_color)
+
+        #     # self.blit_screen(
+        #     time_table = [
+        #             first_metro_dest,
+        #             first_metro_incoming,
+        #             first_metro_text,
+        #             first_metro_next,
+        #             second_metro_dest,
+        #             second_metro_incoming,
+        #             second_metro_text,
+        #             second_metro_next,
+        #         ]
+        #     # )
+
+        #     # Set the size of the space between items and the position of the first item
+        #     spacer = 70
+        #     top_row = 120
+
+        #     # Set the starting position for the first item
+        #     l = 50
+        #     r = top_row
+
+        #     # Initialize the row counter
+        #     row = 0
+
+        #     # Iterate over the items in the array
+        #     for index, item in enumerate(time_table):
+        #         # Blit the item onto the screen at the specified position
+        #         self.screen.blit(time_table[index], (l, r))
+
+        #         # Increment the row position and row counter
+        #         r += spacer
+        #         row += 1
+
+        #         # If we have reached the fourth row, reset the position and row counter
+        #         if row == 4:
+        #             row = 0
+        #             l = 270
+        #             r = top_row
 
     def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Band surface size
@@ -284,7 +340,7 @@ class Hyperpixel2r:
                     break  # Exit the loop if KeyboardInterrupt occurs
         except Exception as e:
             print(f"Exception occurred in {process_desc} update process: {e}")
-        print(f"{process_desc} update process stopped.")
+        print(f"{process_desc} process stopped.")
 
     def run(self):
         config = Transit_Config.get_config()
@@ -297,8 +353,8 @@ class Hyperpixel2r:
         alert_queue = multiprocessing.Queue() # Initialize the alert queue
         stop_flag = self.stop_flag # Stop update process flag
 
-        trip_update_process = multiprocessing.Process(target=self.update_process, args=("Metro status", stop_flag, fetch_times, (trip_status,), 15, trip_queue))
-        alert_update_process = multiprocessing.Process(target=self.update_process, args=("Service alert", stop_flag, fetch_alerts, (service_message,), 300, alert_queue))
+        trip_update_process = multiprocessing.Process(target=self.update_process, args=("Metro status update", stop_flag, fetch_times, (trip_status,), 15, trip_queue))
+        alert_update_process = multiprocessing.Process(target=self.update_process, args=("Service alert update", stop_flag, fetch_alerts, (service_message,), 300, alert_queue))
 
         trip_update_process.start()
         alert_update_process.start()
