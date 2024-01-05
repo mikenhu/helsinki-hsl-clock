@@ -132,20 +132,16 @@ class Hyperpixel2r:
         with open(fbdev, "wb") as fb:
             fb.write(self.screen.convert(16, 0).get_buffer())
 
-    # This code defines a function called blit_screen that takes in a list of dictionaries called items as its argument. 
+    # This code defines a function called blit_screen that takes in an array as its argument. 
     # The function sets up several variables at the beginning:
-        # spacer is set to 70 and determines the size of the space between items.
+        # spacer is set to 70 and determines the size of the space between array items.
         # top_row is set to 120 and determines the position of the first item on the screen.
         # l and r are set to 50 and 120, respectively, and determine the starting position for the first item.
         # row is set to 0 and is used to keep track of the current row number.
-    # The function then enters a loop that iterates over each dictionary in items. 
-    # For each dictionary, the function checks if the dictionary has a key called "item" and a non-empty value. 
-    # If this is the case, the function calls the blit method on self.screen with the value of the "item" key and a tuple of coordinates as arguments. 
     # The blit method is used to draw an image onto the screen object at the specified coordinates.
-
     # After the blit call, the value of r is increased by spacer, and the value of row is incremented by 1. 
     # If row is equal to 4, the values of row and l are reset to 0 and 270, respectively, and r is set to top_row again.
-    # This process continues until all dictionaries in items have been processed. The blit_screen function does not return any value.
+    # This process continues until all array items have been processed. The blit_screen function does not return any value.
     def blit_screen(self, items):
         # Set the size of the space between items and the position of the first item
         spacer = 70
@@ -240,9 +236,10 @@ class Hyperpixel2r:
 
     def scrolling_objects_loop(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Image surface size
+        # Band surface size
         BAND_WIDTH = 480
         BAND_HEIGHT = 101
-        obj_padding = 10
+        PADDING = 10
 
         # Update alert if new data in the queue
         if not alert_queue.empty():
@@ -261,12 +258,12 @@ class Hyperpixel2r:
 
         self.screen.blit(self._img_double, (self.top_x, self.top_y))
 
-        if isinstance(self.alert_result, str) and self.alert_result is not None:
+        if isinstance(self.alert_result, str) and self.alert_result is not None and self.alert_result.strip() != "":
             text_surface = render_font(game_font, self.alert_result, font_color)
             text_width = text_surface.get_width()
 
-            text_x = self.bottom_x + self._img_left.get_width() + obj_padding
-            text_y = self.bottom_y + obj_padding
+            text_x = self.bottom_x + self._img_left.get_width() + PADDING
+            text_y = self.bottom_y + PADDING
 
             text_rect = pygame.Rect(text_x, text_y, text_width, text_surface.get_height())
 
@@ -275,7 +272,7 @@ class Hyperpixel2r:
 
             self.screen.blit(self._img_left, (self.bottom_x, self.bottom_y))
             self.screen.blit(text_surface, text_rect)
-            self.screen.blit(self._img_right, (text_x + text_width + obj_padding, self.bottom_y))
+            self.screen.blit(self._img_right, (text_x + text_width + PADDING, self.bottom_y))
         else:
             if self.bottom_x < -150:
                 self.bottom_x = BAND_WIDTH
