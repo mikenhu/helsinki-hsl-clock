@@ -113,12 +113,13 @@ def process_feed_multicores(fetch_func):
 
 # Parse data from config.ini file
 class Transit_Config:
-    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url, language):
+    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url, language, time_row_num):
         self.stop_id_with_names = stop_id_with_names
         self.route_id_metro = route_id_metro
         self.trip_update_url = trip_update_url
         self.service_alerts_url = service_alerts_url
         self.language = language
+        self.time_row_num = time_row_num
     
     @staticmethod
     def get_config():
@@ -128,7 +129,7 @@ class Transit_Config:
             logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
-        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro", "language"]
+        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro", "language", "time_row_num"]
         configured_values = {}
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
@@ -172,48 +173,19 @@ class HSL_Trip_Update:
         return stop_times
 
     def _process_stop_times(self, stop_times, current_time):
-        # stop_times = {
-        #     stop_id: sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:2
-        #     for stop_id, wait_times in stop_times.items()
-        # }
-
-        # stop_times = {
-        #     stop_id: [int(time.total_seconds() / 60) if time.total_seconds() != 0 else None for time in wait_times]
-        #     for stop_id, wait_times in stop_times.items()
-        # }
-
-        # result = {
-        #     i: {
-        #         'Destination': dest,
-        #         'Incoming': wait_times[0] if len(wait_times) >= 1 else None,
-        #         'Next': wait_times[1] if len(wait_times) >= 2 else None
-        #     }
-        #     for i, (dest, wait_times) in enumerate(stop_times.items())
-        # }
-
-        stop_times2 = {
+        num = int(self.transit_config.time_row_num)
+        stop_times = {
             stop_id: [
                 # Convert timestamp to datetime, calculate waiting time, and format
                 f"{int(time.total_seconds() / 60)} {'mins' if int(time.total_seconds() / 60) > 1 else 'min'}" if time.total_seconds() != 0 else None
-                for time in sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:3]
+                for time in sorted([datetime.datetime.fromtimestamp(timestamp) - current_time for timestamp in wait_times])[:num]
                 # Process each stop's wait times
             ]
             for stop_id, wait_times in stop_times.items()  # Loop through each stop
-        } # 'Kivenlahti': ['6 mins', '12 mins', '20 mins'], 'Vuosaari': ['1 min', '6 mins', '12 mins']}
-        print(stop_times2)
-        # return stop_times
-
-        result = {
-            i: {
-                'Destination': dest,
-                'Incoming': wait_times[0],
-                'Next': wait_times[1]
-            }
-            for i, (dest, wait_times) in enumerate(stop_times2.items())
-        }
-
-        print(result)
-        return result
+        } # 'Kivenlahti': ['6 mins', '12 mins'], 'Vuosaari': ['1 min', '6 mins']}
+        
+        print(stop_times)
+        return stop_times
 
 
     def metro_status(self):

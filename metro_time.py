@@ -209,40 +209,37 @@ class Hyperpixel2r:
             # Clear screen before rendering new data
             pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
 
-            # status_item = self.trip_status.item()
+            # Initialize row counter
+            row = 1
 
-            # for key_name, value in self.trip_status.items():
-            #     print(key_name)
-            #     text_surface1 = render_font(game_font, key_name, font_color)
-            #     for time in value:
-            #         print(time)
-            #         text_surface2 = render_font(game_font, time, font_color)
-
-            items = [
-                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Destination')}", font_color),
-                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Incoming')}", font_color),
-                render_font(game_font, "Next", font_color),
-                render_font(game_font, f"{check_for_value(self.trip_status[0], 'Next')}", font_color),
-                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Destination')}", font_color),
-                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Incoming')}", font_color),
-                render_font(game_font, "Next", font_color),
-                render_font(game_font, f"{check_for_value(self.trip_status[1], 'Next')}", font_color),
-            ]
-            
-            # Initialize the row counter
-            row = 0
             # Set the starting position for the first item
             x = LEFT_COL_X
             y = LEFT_COL_Y
-            # Iterate over the items in the array
-            for index, item in enumerate(items):
-                # Blit the item onto the screen at the specified position
-                self.scrolling_text(items[index], COL_WIDTH, self.table_x, x, y)
-                # Increas the y position and row counter
+
+            # Iterate over the dictionary
+            for location, times in self.trip_status.items():
+                self.scrolling_text(render_font(game_font,location,font_color), COL_WIDTH, self.table_x, x, y)
+                # Increase the y position and row counter
                 y += ROW_SPACER
                 row += 1
-                # If we have reached the fourth row, reset the y position, switch column and row counter
-                if row == 4:
+                item_count = len(times)
+                # print(item_count)
+
+                for time in times:
+                    if item_count < 3:
+                        self.scrolling_text(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                        y += ROW_SPACER
+                        row -= 1
+                        self.scrolling_text(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                        y += ROW_SPACER
+                        row += 1
+                    else:
+                        self.scrolling_text(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                        # Increase the y position and row counter
+                        y += ROW_SPACER
+                        row += 1
+                # If we have reached the max number of items in the dictionary, reset the y position and switch column
+                if row >= item_count:
                     row = 0
                     x = RIGHT_COL_X
                     y = RIGHT_COL_Y
@@ -363,22 +360,6 @@ def fetch_alerts(string):
         return ""
 
     return message
-
-# def check_for_value(obj, key):
-#     if key in obj:
-#         # Check if it is number of minutes
-#         if str(obj[key]).isnumeric():
-#             obj[key] = str(obj[key])
-#             if obj[key] in ['0', '1']:
-#                 return f"{obj[key]} min"
-#             else:
-#                 return f"{obj[key]} mins"
-#         else: 
-#             return obj[key]
-#     else: "?"
-
-def check_for_value(obj, key):
-    return obj[key] if key in obj else "?"
 
 def render_font(font, text, font_color, bold=False):
     return font.render(text, bold, font_color)
