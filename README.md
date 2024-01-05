@@ -125,7 +125,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
   
   ```bash
-  hyperpixel2r-init
+  hyperpixel2r-init &
   bash metro.sh &>/dev/null
   ```
 
