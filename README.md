@@ -12,8 +12,10 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ## Features
 
-* Display metro timetables.
+* Display public transport timetables.
 * Display service alerts.
+* Support up to 4 trips.
+* Display changes to 
 * Utilize Pi's quad-core system.
 * API call error handlings.
 
@@ -96,21 +98,34 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
   * Edit the file as you wish.
-    * ID of the platform and the direction of the metro.
-    * Route id metro.
-    * Language (ISO).
-    * Number of timetable rows you want to have (max 3).
     * URLs: the APIs of the service.
-  * It should be formatted like this:
+    * Language (ISO).
+    * Number of timetable rows you want to have (up to 3 rows).
+    * Insert your platforms (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
+      * direction_name: self-naming due to HSL does not include head_sign names in the data.
+      * direction_id: supposedly 0 is inbound, 1 is outbound.
+      * route_id can contain multiple items.
+  * The content should be formatted like this:
 
     ```ini
     [HSL-CONFIG]
-    stop_id_with_names = {"1541602": "West", "1541601": "East"}
-    route_id_metro = "31M"
+    trip_update_url = <https://realtime.hsl.fi/realtime/trip-updates/v2/hsl>
+    service_alerts_url = <https://realtime.hsl.fi/realtime/service-alerts/v2/hsl>
     language = "en"
     time_row_num = 2
-    trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
-    service_alerts_url = https://realtime.hsl.fi/realtime/service-alerts/v2/hsl
+    platforms = [
+              {
+                "stop_id": "1541602",
+                "direction_name": "Kivenlahti",
+                "direction_id": 1,
+                "route_id": ["31M1"]
+              }, {
+                "stop_id": "1541601",
+                "direction_name": "Vuosaari",
+                "direction_id": 0,
+                "route_id": ["31M1", "31M1B"]
+              }
+            ]
     ```
 
   * Once done, press `CTRL+X` → `Y` → `Enter`
