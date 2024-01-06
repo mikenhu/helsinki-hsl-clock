@@ -225,7 +225,7 @@ class Hyperpixel2r:
                 # print(item_count)
 
                 for time in times:
-                    if item_count < 3:
+                    if 1 < item_count < 3:
                         self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row -= 1
