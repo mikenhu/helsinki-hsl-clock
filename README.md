@@ -12,12 +12,14 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ## Features
 
-* Display public transport timetables.
-* Display service alerts.
+* Realtime public transport timetables.
+* Realtime service alerts.
+* Scroll longer station names.
 * Support up to 4 trips.
-* Display changes to 
-* Utilize Pi's quad-core system.
-* API call error handlings.
+* Smooth animation.
+* Support 60 fps.
+* Utilize quad-core Raspberry Pi models.
+* API handlings for realtime data.
 
 ## Used hardware
 
@@ -98,10 +100,10 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
   * Edit the file as you wish.
-    * URLs: the APIs of the service.
+    * URLs: HSL APIs.
     * Language (ISO).
     * Number of timetable rows you want to have (up to 3 rows).
-    * Insert your platforms (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
+    * Insert your stops (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
       * direction_name: self-naming due to HSL does not include head_sign names in the data.
       * direction_id: supposedly 0 is inbound, 1 is outbound.
       * route_id can contain multiple items.
@@ -113,7 +115,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
     service_alerts_url = <https://realtime.hsl.fi/realtime/service-alerts/v2/hsl>
     language = "en"
     time_row_num = 2
-    platforms = [
+    stops = [
               {
                 "stop_id": "1541602",
                 "direction_name": "Kivenlahti",
@@ -154,7 +156,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Access your Pi from Home Assistant
 
-* Use the `Advanced SSH & Web Terminal` community add-on on HA. Make sure *Protection mode* is off.
+* Use the `Advanced SSH & Web Terminal` community add-on on HA. Make sure **Protection mode** is off.
 * Create folder to store the public key
 
   ```cli
