@@ -1,4 +1,5 @@
 import google.transit.gtfs_realtime_pb2 as gtfs
+# import multiprocessing
 import concurrent.futures
 import datetime
 import requests
@@ -101,11 +102,14 @@ def fetch_feed(url):
 
 # Utilize multicores to process data from API
 def process_feed_multicores(fetch_func):
-    pool = multiprocessing.Pool(processes=4)
-    result = pool.apply(fetch_func)
-    pool.close()
-    pool.join()
-    return result
+    # pool = multiprocessing.Pool(processes=4)
+    # result = pool.apply(fetch_func)
+    # pool.close()
+    # pool.join()
+    # return result
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        result = executor.submit(fetch_func)
+        return result.result()
 
 def write_to_file(input, file_name):
     result_str = str(input)
