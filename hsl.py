@@ -1,5 +1,5 @@
 import google.transit.gtfs_realtime_pb2 as gtfs
-import multiprocessing
+import concurrent.futures
 import datetime
 import requests
 import json
@@ -228,14 +228,12 @@ class HSL_Service_Alert:
                 if alert:
                     messages.add(alert)
         
-        if len(messages) > 1:
-            message = ' '.join(list(messages))
-            print(message)
-            return message
+        if len(messages) == 1:
+            return next(iter(messages))
+        elif len(messages) > 1:
+            return ' '.join(messages)
         else:
-            message = list(messages)[0]
-            print(message)
-            return message
+            return None
 
     def _process_alert_entity(self, entity):
         for informed_entity in entity.alert.informed_entity:
