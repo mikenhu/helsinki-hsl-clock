@@ -12,10 +12,14 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ## Features
 
-* Display metro timetables.
-* Display service alerts.
-* Utilize Pi's quad-core system.
-* API call error handlings.
+* Realtime public transport timetables.
+* Realtime service alerts.
+* Scroll longer station names.
+* Support up to 4 trips.
+* Smooth animation.
+* Support 60 fps.
+* Utilize quad-core Raspberry Pi models.
+* API handlings for realtime data.
 
 ## Used hardware
 
@@ -96,21 +100,34 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
   * Edit the file as you wish.
-    * ID of the platform and the direction of the metro.
-    * Route id metro.
+    * URLs: HSL APIs.
     * Language (ISO).
-    * Number of timetable rows you want to have (max 3).
-    * URLs: the APIs of the service.
-  * It should be formatted like this:
+    * Number of timetable rows you want to have (up to 3 rows).
+    * Insert your stops (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
+      * direction_name: self-naming due to HSL does not include head_sign names in the data.
+      * direction_id: supposedly 0 is inbound, 1 is outbound.
+      * route_id can contain multiple items.
+  * The content should be formatted like this:
 
     ```ini
     [HSL-CONFIG]
-    stop_id_with_names = {"1541602": "West", "1541601": "East"}
-    route_id_metro = "31M"
+    trip_update_url = <https://realtime.hsl.fi/realtime/trip-updates/v2/hsl>
+    service_alerts_url = <https://realtime.hsl.fi/realtime/service-alerts/v2/hsl>
     language = "en"
     time_row_num = 2
-    trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
-    service_alerts_url = https://realtime.hsl.fi/realtime/service-alerts/v2/hsl
+    stops = [
+              {
+                "stop_id": "1541602",
+                "direction_name": "Kivenlahti",
+                "direction_id": 1,
+                "route_id": ["31M1"]
+              }, {
+                "stop_id": "1541601",
+                "direction_name": "Vuosaari",
+                "direction_id": 0,
+                "route_id": ["31M1", "31M1B"]
+              }
+            ]
     ```
 
   * Once done, press `CTRL+X` → `Y` → `Enter`
@@ -139,7 +156,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Access your Pi from Home Assistant
 
-* Use the `Advanced SSH & Web Terminal` community add-on on HA. Make sure *Protection mode* is off.
+* Use the `Advanced SSH & Web Terminal` community add-on on HA. Make sure **Protection mode** is off.
 * Create folder to store the public key
 
   ```cli

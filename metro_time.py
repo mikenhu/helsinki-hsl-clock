@@ -152,7 +152,7 @@ class Hyperpixel2r:
         return game_font, font_color
 
     def text_render(self, text_surface, allowed_width, start_table_x, clip_area_x, clip_area_y):
-        spacer_width = 10
+        spacer_width = 25
         text_length = text_surface.get_width() + spacer_width
 
         # Scroll text if it's longer than 190px
@@ -183,7 +183,7 @@ class Hyperpixel2r:
             text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
             self.screen.blit(text_surface, (text_x, text_y))
 
-    def trip_table(self, trip_queue, game_font, font_color, scroll_speed=0.5, clear_color=(0, 0, 0)):        
+    def trip_table(self, trip_queue, game_font, font_color, scroll_speed=0.15, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
         # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
@@ -207,6 +207,7 @@ class Hyperpixel2r:
         if self.trip_status is not None:
             # Clear screen before rendering new data
             pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
+            status_count = len(self.trip_status)
 
             # Initialize row counter
             row = 1
@@ -215,33 +216,55 @@ class Hyperpixel2r:
             x = LEFT_COL_X
             y = LEFT_COL_Y
 
-            # Iterate over the dictionary
-            for location, times in self.trip_status.items():
-                self.text_render(render_font(game_font,location,font_color), COL_WIDTH, self.table_x, x, y)
-                # Increase the y position and row counter
-                y += ROW_SPACER
-                row += 1
-                item_count = len(times)
-                # print(item_count)
+            if status_count == 1:
+                COL_WIDTH = 400
 
-                for time in times:
-                    if 1 < item_count < 3:
-                        self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
-                        y += ROW_SPACER
-                        row -= 1
-                        self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+            if status_count <= 4:
+                try:
+                    for location, times in self.trip_status.items():
+                        self.text_render(render_font(game_font, location, font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row += 1
-                    else:
-                        self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
-                        # Increase the y position and row counter
-                        y += ROW_SPACER
-                        row += 1
-                # If we have reached the max number of items in the dictionary, reset the y position and switch column
-                if row >= item_count:
-                    row = 0
-                    x = RIGHT_COL_X
-                    y = RIGHT_COL_Y
+
+                        if status_count == 1:
+                            for time in times:
+                                self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                                y += ROW_SPACER
+                                row += 1
+
+                                if 1 < len(times) < 3:
+                                    self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                                    y += ROW_SPACER
+                                    row += 1
+
+                        elif status_count == 2:
+                            for time in times:
+                                self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                                y += ROW_SPACER
+                                row += 1
+
+                                if 1 < len(times) < 3:
+                                    self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                                    y += ROW_SPACER
+                                    row += 1
+
+                            if row >= len(times):
+                                row = 0
+                                x = RIGHT_COL_X
+                                y = RIGHT_COL_Y
+
+                        elif status_count in (3, 4):
+                            self.text_render(render_font(game_font, times[0], font_color), COL_WIDTH, self.table_x, x, y)
+                            y += ROW_SPACER
+                            row += 1
+                            
+                            if row > status_count:
+                                row = 0
+                                x = RIGHT_COL_X
+                                y = RIGHT_COL_Y
+                
+                except Exception as e:
+                    print(f"Unexpected error: {e}")
 
     def scrolling_bands(self, alert_queue, game_font, font_color, scroll_speed=3, clear_color=(0, 0, 0)):
         # Band surface size
@@ -257,7 +280,7 @@ class Hyperpixel2r:
 
         pygame.draw.rect(self.screen, clear_color, (0, 0, BAND_WIDTH, BAND_HEIGHT)) # Clear top screen
         pygame.draw.rect(self.screen, clear_color, (0, 390, BAND_WIDTH, BAND_HEIGHT)) # Clear bottom screen
-       
+
         # Calculate the center of the top band rectangle
         top_band_center_x = (BAND_WIDTH - self._img_warning.get_width()) // 2
         top_band_center_y = (BAND_HEIGHT - self._img_warning.get_height()) // 2
