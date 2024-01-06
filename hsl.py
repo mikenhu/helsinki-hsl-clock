@@ -107,13 +107,17 @@ def process_feed_multicores(fetch_func):
     pool.join()
     return result
 
+def write_to_file(input, file_name):
+    result_str = str(input)
+    with open(file_name, 'w') as file:
+        file.write(result_str)
+
 # Parse data from config.ini file
 class Transit_Config:
-    def __init__(self, stop_id_with_names, route_id_metro, trip_update_url, service_alerts_url, language, time_row_num):
-        self.stop_id_with_names = stop_id_with_names
-        self.route_id_metro = route_id_metro
+    def __init__(self, trip_update_url, service_alerts_url, platforms, language, time_row_num):
         self.trip_update_url = trip_update_url
         self.service_alerts_url = service_alerts_url
+        self.platforms = platforms
         self.language = language
         self.time_row_num = time_row_num
     
@@ -125,7 +129,7 @@ class Transit_Config:
             logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
-        config_options = ["trip_update_url", "service_alerts_url", "stop_id_with_names", "route_id_metro", "language", "time_row_num"]
+        config_options = ["trip_update_url", "service_alerts_url", "platforms", "language", "time_row_num"]
         configured_values = {}
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
@@ -139,7 +143,9 @@ class Transit_Config:
 
 class HSL_Trip_Update:
     def __init__(self, transit_config):
-        self.transit_config = transit_config
+        self.transit_config = transit_config        
+        self.platforms = json.loads(self.transit_config.platforms)
+        self.stop_status = {stop['direction_name']: [] for stop in self.platforms}
 
     def process_feed(self):
         feed = fetch_feed(self.transit_config.trip_update_url)
@@ -153,20 +159,21 @@ class HSL_Trip_Update:
             logger.warning("Trip status fetch did not return any data.")
             return {}
 
-        stop_id_with_names = json.loads(self.transit_config.stop_id_with_names)
-        stop_times = {stop_id_name: [] for stop_id_name in stop_id_with_names.values()}
-        
+        trips = self.stop_status
+
         for entity in feed.entity:
             if entity.HasField('trip_update'):
+                route_id = entity.trip_update.trip.route_id
                 for stop_time_update in entity.trip_update.stop_time_update:
-                    if stop_time_update.stop_id in stop_id_with_names:
-                        arrival_time = stop_time_update.arrival.time
-                        arrival_time_dt = datetime.datetime.fromtimestamp(arrival_time)
-                        
-                        if arrival_time_dt > current_time:
-                            stop_times[stop_id_with_names[stop_time_update.stop_id]].append(arrival_time)
+                    stop_id = stop_time_update.stop_id
+                    arrival_time = stop_time_update.arrival.time
+                    arrival_time_dt = datetime.datetime.fromtimestamp(arrival_time)
+                    for platform in self.platforms:
+                        if stop_id == platform['stop_id'] and route_id in platform['route_id']:
+                            if arrival_time_dt > current_time:
+                                trips[platform['direction_name']].append(arrival_time)
         
-        return stop_times
+        return trips
 
     def _process_stop_times(self, stop_times, current_time):
         num = int(self.transit_config.time_row_num)
@@ -183,17 +190,27 @@ class HSL_Trip_Update:
         print(stop_times)
         return stop_times
 
-
     def metro_status(self):
         return process_feed_multicores(self.process_feed)
 
 class HSL_Service_Alert:
     def __init__(self, transit_config):
         self.transit_config = transit_config
+        self._informed_ids = self._get_route_ids()
+    
+    def _get_route_ids(self):
+        platforms = json.loads(self.transit_config.platforms)
+        stop_ids = set()
+        route_ids = set()
+
+        for platform in platforms:
+            stop_ids.add(platform["stop_id"])
+            route_ids.update(platform["route_id"])
+
+        return list(stop_ids | route_ids)
 
     def process_alert(self):
         feed = fetch_feed(self.transit_config.service_alerts_url)
-        alert_message = ""
 
         if feed:
             alert_message = self._extract_service_alert(feed)
@@ -203,27 +220,38 @@ class HSL_Service_Alert:
         return alert_message
 
     def _extract_service_alert(self, feed):
+        messages = set()
+
         for entity in feed.entity:
             if entity.HasField('alert'):
-                alert_message = self._process_alert_entity(entity)
-                if alert_message:
-                    return alert_message
-
-        return ""
+                alert = self._process_alert_entity(entity)
+                if alert:
+                    messages.add(alert)
+        
+        if len(messages) > 1:
+            message = ' '.join(list(messages))
+            print(message)
+            return message
+        else:
+            message = list(messages)[0]
+            print(message)
+            return message
 
     def _process_alert_entity(self, entity):
         for informed_entity in entity.alert.informed_entity:
             route_id = informed_entity.route_id
-            if route_id.startswith(self.transit_config.route_id_metro.strip('\"')):
-                start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
-                end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
-                active_period_str = f"({start_time:%d/%m/%Y %H:%M} - {end_time:%d/%m/%Y %H:%M})"
+            stop_id = informed_entity.stop_id
+            if route_id in self._informed_ids or stop_id in self._informed_ids:
+                # start_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].start)
+                # end_time = datetime.datetime.fromtimestamp(entity.alert.active_period[0].end)
+                # active_period_str = f"({start_time:%d/%m/%Y %H:%M} - {end_time:%d/%m/%Y %H:%M})"
 
                 for translation in entity.alert.description_text.translation:
                     if translation.language == self.transit_config.language.strip('\"'):
-                        alert_message = f"{translation.text} {active_period_str}"
+                        # alert_message = f"{translation.text} {active_period_str}"
+                        alert_message = f"{translation.text}"
                         return alert_message
-
+        
         return ""
 
     def service_alert(self):
