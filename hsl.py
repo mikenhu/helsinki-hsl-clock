@@ -114,10 +114,10 @@ def write_to_file(input, file_name):
 
 # Parse data from config.ini file
 class Transit_Config:
-    def __init__(self, trip_update_url, service_alerts_url, platforms, language, time_row_num):
+    def __init__(self, trip_update_url, service_alerts_url, stops, language, time_row_num):
         self.trip_update_url = trip_update_url
         self.service_alerts_url = service_alerts_url
-        self.platforms = platforms
+        self.stops = stops
         self.language = language
         self.time_row_num = time_row_num
     
@@ -129,7 +129,7 @@ class Transit_Config:
             logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
-        config_options = ["trip_update_url", "service_alerts_url", "platforms", "language", "time_row_num"]
+        config_options = ["trip_update_url", "service_alerts_url", "stops", "language", "time_row_num"]
         configured_values = {}
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
@@ -144,8 +144,8 @@ class Transit_Config:
 class HSL_Trip_Update:
     def __init__(self, transit_config):
         self.transit_config = transit_config        
-        self.platforms = json.loads(self.transit_config.platforms)
-        self.stop_status = {stop['direction_name']: [] for stop in self.platforms}
+        self.stops = json.loads(self.transit_config.stops)
+        self.stop_status = {stop['direction_name']: [] for stop in self.stops}
 
     def process_feed(self):
         feed = fetch_feed(self.transit_config.trip_update_url)
@@ -168,10 +168,10 @@ class HSL_Trip_Update:
                     stop_id = stop_time_update.stop_id
                     arrival_time = stop_time_update.arrival.time
                     arrival_time_dt = datetime.datetime.fromtimestamp(arrival_time)
-                    for platform in self.platforms:
-                        if stop_id == platform['stop_id'] and route_id in platform['route_id']:
+                    for stop in self.stops:
+                        if stop_id == stop['stop_id'] and route_id in stop['route_id']:
                             if arrival_time_dt > current_time:
-                                trips[platform['direction_name']].append(arrival_time)
+                                trips[stop['direction_name']].append(arrival_time)
         
         return trips
 
@@ -199,13 +199,13 @@ class HSL_Service_Alert:
         self._informed_ids = self._get_route_ids()
     
     def _get_route_ids(self):
-        platforms = json.loads(self.transit_config.platforms)
+        stops = json.loads(self.transit_config.stops)
         stop_ids = set()
         route_ids = set()
 
-        for platform in platforms:
-            stop_ids.add(platform["stop_id"])
-            route_ids.update(platform["route_id"])
+        for stop in stops:
+            stop_ids.add(stop["stop_id"])
+            route_ids.update(stop["route_id"])
 
         return list(stop_ids | route_ids)
 
