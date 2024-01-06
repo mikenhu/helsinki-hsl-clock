@@ -143,6 +143,10 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   
   ```bash
   bash metro.sh &>/dev/null
+  # Disable the LED when you boot your Pi Zero 2 W to prevent light leak
+  echo none | sudo tee /sys/class/leds/led0/trigger
+  echo 0 | sudo tee /sys/class/leds/led0/brightness
+
   ```
 
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
