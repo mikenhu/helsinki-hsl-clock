@@ -63,7 +63,7 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
         while not stop_flag.is_set():
             try:
                 result = updater_func(*updater_args)
-                queue.put(allowed_width)
+                queue.put(result)
                 # Synchronize sleep with stop_flag.wait() for a specific interval
                 stop_flag.wait(interval)
             except KeyboardInterrupt:
