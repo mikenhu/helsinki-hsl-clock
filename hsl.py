@@ -194,7 +194,7 @@ class HSL_Trip_Update:
         print(stop_times)
         return stop_times
 
-    def metro_status(self):
+    def transport_status(self):
         return process_feed_multicores(self.process_feed)
 
 class HSL_Service_Alert:

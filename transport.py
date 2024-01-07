@@ -280,7 +280,7 @@ class Hyperpixel2r:
         alert_queue = multiprocessing.Queue()
         stop_flag = self.stop_flag # Stop process flag
 
-        trip_update_process = multiprocessing.Process(target=update_process, args=("Metro status update", stop_flag, fetch_data, (trip_status, 'metro_status'), 15, trip_queue))
+        trip_update_process = multiprocessing.Process(target=update_process, args=("Transport status update", stop_flag, fetch_data, (trip_status, 'transport_status'), 15, trip_queue))
         alert_update_process = multiprocessing.Process(target=update_process, args=("Service alert update", stop_flag, fetch_data, (service_message, 'service_alert'), 300, alert_queue))
 
         trip_update_process.start()

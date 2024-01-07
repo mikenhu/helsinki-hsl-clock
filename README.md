@@ -1,4 +1,4 @@
-# HSL Metro Clock
+# HSL Clock
 
 I came across [this tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) and was inspired to create one for myself.
 
@@ -12,7 +12,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ## Features
 
-* Realtime public transport timetables.
+* Realtime public transport (metro/bus/tram) timetables.
 * Realtime service alerts.
 * Scroll longer station names.
 * Support up to 4 trips.
@@ -42,7 +42,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * Click `Choose Storage` and select your Micro SD card.
 * Click `Next` and set following configurations on the next page.
   * `Enable SSH` → `Use password authentication`.
-  * `Set username and password` → Leave the username as `pi` (if you must change it, you'll need to update `metro.sh`) but set a password.
+  * `Set username and password` → Leave the username as `pi` (if you must change it, you'll need to update `transport_time.sh`) but set a password.
   * `Configure wifi` → Enter your Wi-Fi details.
   * `Save` when you're done.
 * Click `Write` and wait for the OS to be written to your SD Card
@@ -50,7 +50,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
 ### Get your stop and route ids
 
-* Get your stop and route ids from here <https://transitfeeds.com/p/helsinki-regional-transport/735/latest/stops>
+* Get your stop and route ids from here <https://transitfeeds.com/p/helsinki-regional-transport/735/latest/stops>. You'll need them for configuration.
 * The API endpoints in this repo are taken from here <https://hsldevcom.github.io/gtfs_rt/>
 
 ### Installing the software
@@ -85,8 +85,8 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * Download the code and move into the folder:  
 
   ```cli
-  git clone https://github.com/mikenhu/hsl-metro-clock
-  cd hsl-metro-clock
+  git clone https://github.com/mikenhu/hsl-clock
+  cd hsl-clock
   ```
 
 * Install required libraries:
@@ -103,10 +103,11 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
     * URLs: HSL APIs.
     * Language (ISO).
     * Number of timetable rows you want to have (up to 3 rows).
-    * Insert your stops (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
-      * direction_name: self-naming due to HSL does not include head_sign names in the data.
-      * direction_id: supposedly 0 is inbound, 1 is outbound.
-      * route_id can contain multiple items.
+    * Insert your metro/bus/tram stops (from 1 up to 4 trips). When you have more than 2 trips, the time row is limited to 1.
+      * stop_id: one stop id per entry.
+      * direction_name: self-naming due to HSL data does not include the head sign names.
+      * direction_id: supposedly 0 is inbound, 1 is outbound. Uneccessary at the moment.
+      * route_id: can contain multiple routes per entry.
   * The content should be formatted like this:
 
     ```ini
@@ -134,15 +135,15 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * Next we'll set the script to launch at start up. Run these commands:
 
   ```cli
-  sudo cp metro.sh /usr/bin
-  sudo chmod +x /usr/bin/metro_time.sh
+  sudo cp transport_time.sh /usr/bin
+  sudo chmod +x /usr/bin/transport_time.sh
   sudo nano /etc/rc.local
   ```
   
 * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
   
   ```bash
-  bash metro_time.sh &>/dev/null
+  bash transport_time.sh &>/dev/null
   # Disable the LED when you boot your Pi Zero 2 W to prevent light leak
   echo none | sudo tee /sys/class/leds/led0/trigger
   echo 0 | sudo tee /sys/class/leds/led0/brightness
@@ -150,11 +151,11 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   ```
 
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
-* That's it for the software. You can run the metro clock as is. Or...
+* That's it for the software. You can run it as is. Or...
 
 ## Add Pi controls in Home Assistant
 
-* Having the LCD always on is bad, I decided to integrate this metro clock into my home assistant setup.
+* Having the LCD always on is bad, I decided to integrate this HSL clock into my home assistant setup.
 
 * In HA, you can execute CLI commands to control your Pi with command line and shell command integrations.
 
@@ -207,8 +208,8 @@ Copy my config below into your `configuration.yaml` file and make it match your 
 ```yaml
 command_line:
   - switch:
-      name: Metro Dashboard Screen
-      unique_id: metro_dashboard_screen
+      name: Transport Dashboard Screen
+      unique_id: transport_dashboard_screen
       command_off: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo -E sh -c ''echo 1 > /sys/class/backlight/rpi_backlight/bl_power''"'
       command_on: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "sudo -E sh -c ''echo 0 > /sys/class/backlight/rpi_backlight/bl_power''"'
       command_state: 'ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa -o UserKnownHostsFile=/config/.ssh/known_hosts -i /config/.ssh/id_rsa -q pi@[Host] "cat /sys/class/backlight/rpi_backlight/bl_power"'
