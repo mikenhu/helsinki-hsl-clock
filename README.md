@@ -135,14 +135,14 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
   ```cli
   sudo cp metro.sh /usr/bin
-  sudo chmod +x /usr/bin/metro.sh
+  sudo chmod +x /usr/bin/metro_time.sh
   sudo nano /etc/rc.local
   ```
   
 * A text editor will open in your terminal window. Use your arrow keys to move to the bottom of the file and create a space above `exit 0` and enter this:
   
   ```bash
-  bash metro.sh &>/dev/null
+  bash metro_time.sh &>/dev/null
   # Disable the LED when you boot your Pi Zero 2 W to prevent light leak
   echo none | sudo tee /sys/class/leds/led0/trigger
   echo 0 | sudo tee /sys/class/leds/led0/brightness
