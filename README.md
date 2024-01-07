@@ -112,8 +112,8 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 
     ```ini
     [HSL-CONFIG]
-    trip_update_url = <https://realtime.hsl.fi/realtime/trip-updates/v2/hsl>
-    service_alerts_url = <https://realtime.hsl.fi/realtime/service-alerts/v2/hsl>
+    trip_update_url = https://realtime.hsl.fi/realtime/trip-updates/v2/hsl
+    service_alerts_url = https://realtime.hsl.fi/realtime/service-alerts/v2/hsl
     language = "en"
     time_row_num = 2
     stops = [
