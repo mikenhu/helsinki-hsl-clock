@@ -152,7 +152,7 @@ class Hyperpixel2r:
 
         self.table_x -= scroll_speed
 
-        # Update if new data in the queue
+        # Update data
         check_queue_data(data_queue, self.trip_status)
         
         if self.trip_status is not None:
@@ -220,7 +220,7 @@ class Hyperpixel2r:
         BAND_HEIGHT = 101
         PADDING = 10
 
-        # Update alert if new data in the queue
+        # Update alert
         check_queue_data(data_queue, self.alert_result)
 
         # Clear top and bottom screens
