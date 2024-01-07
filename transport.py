@@ -8,11 +8,12 @@ from util import *
 
 # Credit to Pimoroni for the Hyperpixel2r class
 class Transport:
-    def __init__(self, screen, _exit, _rawfb, _updatefb):
-        self.screen = screen
-        self._exit = _exit
-        self._rawfb = _rawfb
-        self._updatefb = _updatefb
+    def __init__(self, display):
+        # Initiate Hyperpixel display
+        self.screen = display.screen
+        self._exit = display._exit
+        self._rawfb = display._rawfb
+        self._updatefb = display._updatefb()
         
         # Load the image, reduce the size of the tram icon and create img object
         # Credit for the icon source: https://www.flaticon.com/free-icons/train
@@ -40,8 +41,7 @@ class Transport:
         
         self._clock = pygame.time.Clock()
         self._running = True
-    
-    #--------------- Code for the clock starts here --------------------#
+
     def trip_table(self, data_queue, game_font, font_color, scroll_speed=0.15, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
@@ -66,7 +66,7 @@ class Transport:
         if self.trip_status is not None:
             # Clear screen before rendering new data
             pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
-            status_count = len(self.trip_status)
+            platform_count = len(self.trip_status)
 
             # Initialize row counter
             row = 1
@@ -75,17 +75,17 @@ class Transport:
             x = LEFT_COL_X
             y = LEFT_COL_Y
 
-            if status_count == 1:
+            if platform_count == 1:
                 COL_WIDTH = 400
 
             # Only redener for 4 platforms
-            if status_count <= 4:
+            if platform_count <= 4:
                 for location, times in self.trip_status.items():
                     text_render(self.screen, render_font(game_font, location, font_color), COL_WIDTH, self.table_x, x, y)
                     y += ROW_SPACER
                     row += 1
                     # Render setting for one platform
-                    if status_count == 1:
+                    if platform_count == 1:
                         for time in times:
                             text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
@@ -96,7 +96,7 @@ class Transport:
                                 y += ROW_SPACER
                                 row += 1
                     # Render setting for two platforms
-                    elif status_count == 2:
+                    elif platform_count == 2:
                         for time in times:
                             text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
@@ -112,12 +112,12 @@ class Transport:
                             x = RIGHT_COL_X
                             y = RIGHT_COL_Y
                     # Render setting for 3 and 4 platforms
-                    elif status_count in (3, 4):
+                    elif platform_count in (3, 4):
                         text_render(self.screen, render_font(game_font, times[0], font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row += 1
                         
-                        if row > status_count:
+                        if row > platform_count:
                             row = 0
                             x = RIGHT_COL_X
                             y = RIGHT_COL_Y
@@ -183,7 +183,7 @@ class Transport:
     def run(self):
         
         config = Transit_Config.get_config()
-        trip_status = HSL_Trip_Update(config)
+        trip_update = HSL_Trip_Update(config)
         service_message = HSL_Service_Alert(config)
 
         game_font, font_color = setup_fonts()
@@ -193,7 +193,7 @@ class Transport:
         alert_queue = multiprocessing.Queue()
         stop_flag = self.stop_flag # Stop process flag
 
-        trip_update_process = multiprocessing.Process(target=update_process, args=("Transport status update", stop_flag, fetch_data, (trip_status, 'transport_status'), 15, trip_queue))
+        trip_update_process = multiprocessing.Process(target=update_process, args=("Transport status update", stop_flag, fetch_data, (trip_update, 'transport_status'), 15, trip_queue))
         alert_update_process = multiprocessing.Process(target=update_process, args=("Service alert update", stop_flag, fetch_data, (service_message, 'service_alert'), 300, alert_queue))
 
         trip_update_process.start()
