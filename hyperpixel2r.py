@@ -28,6 +28,7 @@ class Hyperpixel2r:
     def _exit(self, sig, frame):
         self._running = False
         print("\nExiting!...\n")
+        pygame.quit()
         sys.exit(0)
 
     def _init_display(self):
