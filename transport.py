@@ -137,32 +137,6 @@ class Hyperpixel2r:
             fb.write(self.screen.convert(16, 0).get_buffer())
     
     #--------------- Code for the clock starts here --------------------#
-    def text_render(self, text_surface, allowed_width, start_x, clip_area_x, clip_area_y):
-        spacer_width = 25
-        text_length = text_surface.get_width() + spacer_width
-        # Scroll text if it's longer than allowed width
-        if text_length - spacer_width > allowed_width:
-            # Calculate the effective x-coordinate for scrolling in the right-to-left direction
-            effective_x = (start_x % text_length) - text_length
-            # Define the clipping area
-            clip_area = pygame.Rect(clip_area_x, clip_area_y, allowed_width, text_surface.get_height())
-            # Set the clipping region on the screen
-            self.screen.set_clip(clip_area)
-            # Calculate the position to blit the text within the clipping area
-            start_x = clip_area_x + effective_x
-            # Ensure the text scrolls continuously
-            while start_x < clip_area_x + allowed_width:
-                self.screen.blit(text_surface, (start_x, clip_area_y))
-                start_x += text_length
-            # Reset the clipping region
-            self.screen.set_clip(None)
-        else:
-            # Align the text in the middle
-            text_rect = text_surface.get_rect()
-            text_x = clip_area_x + (allowed_width - text_rect.width) // 2
-            text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
-            self.screen.blit(text_surface, (text_x, text_y))
-        
     def trip_table(self, data_queue, game_font, font_color, scroll_speed=0.15, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
@@ -184,7 +158,7 @@ class Hyperpixel2r:
             if self.trip_status != updated_data:
                 self.trip_status = updated_data
         
-        if trip_data is not None:
+        if self.trip_status is not None:
             # Clear screen before rendering new data
             pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
             status_count = len(self.trip_status)
@@ -202,29 +176,29 @@ class Hyperpixel2r:
             # Only redener for 4 platforms
             if status_count <= 4:
                 for location, times in self.trip_status.items():
-                    self.text_render(render_font(game_font, location, font_color), COL_WIDTH, self.table_x, x, y)
+                    text_render(self.screen, render_font(game_font, location, font_color), COL_WIDTH, self.table_x, x, y)
                     y += ROW_SPACER
                     row += 1
                     # Render setting for one platform
                     if status_count == 1:
                         for time in times:
-                            self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                            text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
                             row += 1
 
                             if 1 < len(times) < 3:
-                                self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                                text_render(self.screen, render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
                                 y += ROW_SPACER
                                 row += 1
                     # Render setting for two platforms
                     elif status_count == 2:
                         for time in times:
-                            self.text_render(render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
+                            text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
                             row += 1
 
                             if 1 < len(times) < 3:
-                                self.text_render(render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
+                                text_render(self.screen, render_font(game_font, "Next", font_color), COL_WIDTH, self.table_x, x, y)
                                 y += ROW_SPACER
                                 row += 1
 
@@ -234,7 +208,7 @@ class Hyperpixel2r:
                             y = RIGHT_COL_Y
                     # Render setting for 3 and 4 platforms
                     elif status_count in (3, 4):
-                        self.text_render(render_font(game_font, times[0], font_color), COL_WIDTH, self.table_x, x, y)
+                        text_render(self.screen, render_font(game_font, times[0], font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row += 1
                         

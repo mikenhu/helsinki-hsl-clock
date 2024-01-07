@@ -45,3 +45,29 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
     except Exception as e:
         print(f"Exception occurred in {process_identifier} update process: {e}")
     print(f"{process_identifier} process stopped.")
+    
+def text_render(display, text_surface, allowed_width, start_x, clip_area_x, clip_area_y):
+    spacer_width = 25
+    text_length = text_surface.get_width() + spacer_width
+    # Scroll text if it's longer than allowed width
+    if text_length - spacer_width > allowed_width:
+        # Calculate the effective x-coordinate for scrolling in the right-to-left direction
+        effective_x = (start_x % text_length) - text_length
+        # Define the clipping area
+        clip_area = pygame.Rect(clip_area_x, clip_area_y, allowed_width, text_surface.get_height())
+        # Set the clipping region on the screen
+        display.set_clip(clip_area)
+        # Calculate the position to blit the text within the clipping area
+        start_x = clip_area_x + effective_x
+        # Ensure the text scrolls continuously
+        while start_x < clip_area_x + allowed_width:
+            display.blit(text_surface, (start_x, clip_area_y))
+            start_x += text_length
+        # Reset the clipping region
+        display.set_clip(None)
+    else:
+        # Align the text in the middle
+        text_rect = text_surface.get_rect()
+        text_x = clip_area_x + (allowed_width - text_rect.width) // 2
+        text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
+        display.blit(text_surface, (text_x, text_y))
