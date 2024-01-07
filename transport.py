@@ -2,20 +2,18 @@
 import os
 import sys
 import signal
-import pygame
 
 from hsl import *
 from util import *
-# from hyperpixel2r import Hyperpixel2r
 
 # Credit to Pimoroni for the Hyperpixel2r class
 class Transport:
-    # display = Hyperpixel2r()
     def __init__(self, screen, _exit, _rawfb, _updatefb):
         self.screen = screen
         self._exit = _exit
         self._rawfb = _rawfb
         self._updatefb = _updatefb
+        
         # Load the image, reduce the size of the tram icon and create img object
         # Credit for the icon source: https://www.flaticon.com/free-icons/train
         self._img_double = load_and_scale_image("imgs/double-tram.png", (1050 // 6, 367 // 6))
@@ -64,7 +62,6 @@ class Transport:
             # Only update if there is new data
             if self.trip_status != updated_data:
                 self.trip_status = updated_data
-        
         
         if self.trip_status is not None:
             # Clear screen before rendering new data
