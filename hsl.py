@@ -13,46 +13,46 @@ import os
 
 from logging.handlers import TimedRotatingFileHandler
 
-# Get the directory path of the script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
-if not os.path.exists(logs_folder):
-    os.makedirs(logs_folder)  # Create the 'logs' folder if it doesn't exist
-
-# Define the file path for error logs within the 'logs' folder
-error_log_file = os.path.join(logs_folder, 'error_logs.txt')
-
-# Create 'logs' folder and grant write access to the folder and log file
 try:
-    os.makedirs(logs_folder, exist_ok=True)  # Create 'logs' folder if it doesn't exist
+    # Get the directory path of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
+    error_log_file = os.path.join(logs_folder, 'error_logs.txt')
+
+    # Create 'logs' folder if it doesn't exist
+    os.makedirs(logs_folder, exist_ok=True)
+
+    # Grant write permissions to the 'logs' folder and log file
     os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
     with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
         os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
-except Exception as e:
-    print(f"Error setting permissions: {e}")
 
-# Create a logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # Set the logging level
+    # Create a logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # Set the logging level
 
-# Create a TimedRotatingFileHandler for log rotation
-handler = TimedRotatingFileHandler(
-    error_log_file, when='W0', interval=1, backupCount=4
-)
-handler.setLevel(logging.WARNING)  # Set the handler's logging level
+    # Create a TimedRotatingFileHandler for log rotation
+    handler = TimedRotatingFileHandler(
+        error_log_file, when='W0', interval=1, backupCount=4
+    )
+    handler.setLevel(logging.WARNING)  # Set the handler's logging level
 
-# Define a log formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)  # Apply the formatter to the handler
+    # Define a log formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)  # Apply the formatter to the handler
 
-# Add the handler to the logger
-logger.addHandler(handler)
+    # Add the handler to the logger
+    logger.addHandler(handler)
 
-try:
     # Log an initial message to confirm successful logger setup
     logger.info("Error log file created and logger configured successfully.")
+
+except FileNotFoundError as fnf_error:
+    print(f"File not found error: {fnf_error}")
+except PermissionError as perm_error:
+    print(f"Permission error: {perm_error}")
 except Exception as e:
-    print(f"Error creating log file: {e}")
+    print(f"Error: {e}")
 
 # API call
 def fetch_feed(url):
