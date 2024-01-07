@@ -1,7 +1,6 @@
 .DS_Store
 .idea/
 logs/
-*.code-workspace
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -134,4 +133,4 @@ dmypy.json
 .pyre/
 
 # Code space
-/helsinki-hsl-clock.code-workspace
+/hsl-clock.code-workspace
