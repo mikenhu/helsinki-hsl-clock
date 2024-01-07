@@ -140,7 +140,6 @@ class Hyperpixel2r:
     
     def trip_table(self, data_queue, game_font, font_color, scroll_speed=0.15, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
-        # pygame.draw.rect(self.screen, (255,0,0), (40, 115, 400, 260))
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
         COL_SPACER = 20
         COL_WIDTH = 190
