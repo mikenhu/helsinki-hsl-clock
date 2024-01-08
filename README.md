@@ -135,8 +135,8 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * Next we'll set the script to launch at start up. Run these commands:
 
   ```cli
-  sudo cp transport_time.sh /usr/bin
-  sudo chmod +x /usr/bin/transport_time.sh
+  sudo cp transport_startup.sh /usr/bin
+  sudo chmod +x /usr/bin/transport_startup.sh
   sudo nano /etc/rc.local
   ```
   
