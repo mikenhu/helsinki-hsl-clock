@@ -11,54 +11,13 @@ import logging
 import sys
 import os
 
-from logging.handlers import TimedRotatingFileHandler
-
-try:
-    # Get the directory path of the script
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
-    error_log_file = os.path.join(logs_folder, 'error_logs.txt')
-
-    # Create 'logs' folder if it doesn't exist
-    os.makedirs(logs_folder, exist_ok=True)
-
-    # Grant write permissions to the 'logs' folder and log file
-    os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
-    with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
-        os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
-
-    # Create a logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)  # Set the logging level
-
-    # Create a TimedRotatingFileHandler for log rotation
-    handler = TimedRotatingFileHandler(
-        error_log_file, when='W0', interval=1, backupCount=4
-    )
-    handler.setLevel(logging.WARNING)  # Set the handler's logging level
-
-    # Define a log formatter
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)  # Apply the formatter to the handler
-
-    # Add the handler to the logger
-    logger.addHandler(handler)
-
-    # Log an initial message to confirm successful logger setup
-    logger.info("Error log file created and logger configured successfully.")
-
-except FileNotFoundError as fnf_error:
-    print(f"File not found error: {fnf_error}")
-except PermissionError as perm_error:
-    print(f"Permission error: {perm_error}")
-except Exception as e:
-    print(f"Error: {e}")
+api_logger = logging.getLogger(__name__)
 
 # API call
 def fetch_feed(url):
     MAX_RETRIES = 10
-    logger = logging.getLogger(__name__)
-
+    # logger = logging.getLogger(__name__)
+    
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             session = requests.Session()
@@ -70,34 +29,34 @@ def fetch_feed(url):
                 feed.ParseFromString(response.content)
                 return feed
             elif 500 <= response.status_code < 600:
-                logger.warning(f"Server error ({response.status_code}): Retrying attempt {attempt}...")
+                api_logger.warning(f"Server error ({response.status_code}): Retrying attempt {attempt}...")
             else:
-                logger.error(f"Client error ({response.status_code}): Cannot fetch feed.")
+                api_logger.error(f"Client error ({response.status_code}): Cannot fetch feed.")
                 break  # Break the loop for non-retriable errors
 
         except requests.exceptions.RequestException as e:
             if isinstance(e, (socket.timeout, requests.exceptions.Timeout)):
-                logger.error(f"Timeout error: {e}. Retrying attempt {attempt}...")
+                api_logger.error(f"Timeout error: {e}. Retrying attempt {attempt}...")
             elif isinstance(e, requests.exceptions.ConnectionError):
-                logger.error(f"Connection error: {e}. Retrying attempt {attempt}...")
+                api_logger.error(f"Connection error: {e}. Retrying attempt {attempt}...")
                 time.sleep(5 ** attempt)  # Exponential backoff for connection errors
                 continue  # Move to the next attempt with a new session
             else:
-                logger.error(f"Request error: {e}.")
+                api_logger.error(f"Request error: {e}.")
                 sys.exit(1)
-                break  # Break the loop for other request errors
+                # break  # Break the loop for other request errors
 
         except Exception as e:
-            logger.exception(f"Unexpected error: {e}.")
-            logger.warning("Restarting Pi due to critical exception.")
-            sys.exit(1)
+            api_logger.exception(f"Unexpected error: {e}.")
+            api_logger.warning("Restarting Pi due to critical exception.")
+            # sys.exit(1)
             os.system("sudo reboot")  # Restart Pi for any exception
-            break  # Break the loop for unexpected errors
+            # break  # Break the loop for unexpected errors
 
         finally:
             session.close()  # Close the session after each attempt
 
-    logger.error("Exceeded maximum retries. Returning empty feed.")
+    api_logger.error("Exceeded maximum retries. Returning empty feed.")
     return gtfs.FeedMessage()
 
 # Utilize multicores to process data from API
@@ -111,10 +70,11 @@ def process_feed_multicores(fetch_func):
         result = executor.submit(fetch_func)
         return result.result()
 
-def write_to_file(input, file_name):
-    result_str = str(input)
-    with open(file_name, 'w') as file:
-        file.write(result_str)
+# Write to reponse to file to test
+# def write_to_file(input, file_name):
+#     result_str = str(input)
+#     with open(file_name, 'w') as file:
+#         file.write(result_str)
 
 # Parse data from config.ini file
 class Transit_Config:
@@ -130,7 +90,7 @@ class Transit_Config:
         config = configparser.ConfigParser()
         config.read("config.ini")
         if "HSL-CONFIG" not in config:
-            logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
+            api_logger.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
         config_options = ["trip_update_url", "service_alerts_url", "stops", "language", "time_row_num"]
@@ -138,7 +98,7 @@ class Transit_Config:
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
             if not configured_value:
-                logging.error(f"Missing {option} from config file, but it is required.")
+                api_logger.error(f"Missing {option} from config file, but it is required.")
                 sys.exit(1)  # Exit with an error code indicating failure
             else:
                 configured_values[option] = configured_value.strip()
@@ -160,7 +120,7 @@ class HSL_Trip_Update:
 
     def _extract_stop_times(self, feed, current_time):
         if not feed:
-            logger.warning("Trip status fetch did not return any data.")
+            api_logger.warning("Trip status fetch did not return any data.")
             return {}
 
         trips = self.stop_status
@@ -177,6 +137,7 @@ class HSL_Trip_Update:
                             if arrival_time_dt > current_time:
                                 trips[stop['direction_name']].append(arrival_time)
         
+        api_logger.debug(trips)
         return trips
 
     def _process_stop_times(self, stop_times, current_time):
@@ -191,6 +152,7 @@ class HSL_Trip_Update:
             for stop_id, wait_times in stop_times.items()  # Loop through each stop
         } # 'Kivenlahti': ['6 mins', '12 mins'], 'Vuosaari': ['1 min', '6 mins']}
         
+        api_logger.debug(stop_times)
         print(stop_times)
         return stop_times
 
@@ -219,7 +181,7 @@ class HSL_Service_Alert:
         if feed:
             alert_message = self._extract_service_alert(feed)
         else:
-            logger.warning("Service alert fetch did not return any data.")
+            api_logger.warning("Service alert fetch did not return any data.")
 
         return alert_message
 
@@ -233,10 +195,13 @@ class HSL_Service_Alert:
                     messages.add(alert)
         
         if len(messages) == 1:
+            api_logger.info("Only 1 alert")
             return next(iter(messages))
         elif len(messages) > 1:
+            api_logger.info("Many messages")
             return ' '.join(messages)
         else:
+            api_logger.info("No message")
             return None
 
     def _process_alert_entity(self, entity):
@@ -252,6 +217,7 @@ class HSL_Service_Alert:
                     if translation.language == self.transit_config.language.strip('\"'):
                         # alert_message = f"{translation.text} {active_period_str}"
                         alert_message = f"{translation.text}"
+                        api_logger.info(alert_message)
                         return alert_message
         
         return ""

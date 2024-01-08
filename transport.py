@@ -1,10 +1,15 @@
-#!/usr/bin/env python3
-import os
 import sys
 import signal
+import logging
+import multiprocessing
 
 from hsl import *
 from util import *
+from logger import logger_init
+
+# Initiate root logger
+logger_init()
+logger = logging.getLogger(__name__)
 
 # Credit to Pimoroni for the Hyperpixel2r class
 class Transport:
@@ -56,11 +61,12 @@ class Transport:
 
         self.table_x -= scroll_speed
 
-        # Update data
+        # Update trip data
         if not data_queue.empty():
             updated_data = data_queue.get()
             # Only update if there is new data
             if self.trip_status != updated_data:
+                logger.info("Update trip data")
                 self.trip_status = updated_data
         
         if self.trip_status is not None:
@@ -133,6 +139,7 @@ class Transport:
             updated_data = data_queue.get()
             # Only update if there is new data
             if self.alert_result != updated_data:
+                logger.info("Update trip data")
                 self.alert_result = updated_data
 
         # Clear top and bottom screens
@@ -181,7 +188,6 @@ class Transport:
             self.screen.blit(self._img_double, (self.bottom_band_x, self.bottom_band_y))
 
     def run(self):
-        
         config = Transit_Config.get_config()
         trip_update = HSL_Trip_Update(config)
         service_message = HSL_Service_Alert(config)
@@ -220,5 +226,6 @@ class Transport:
         trip_update_process.join()
         alert_update_process.join()
         
+        logger.info("Aborted by user")
         pygame.quit()
         sys.exit(0)

@@ -1,5 +1,7 @@
 import pygame
-import multiprocessing
+import logging
+
+util_logger = logging.getLogger(__name__)
 
 def setup_fonts():
     pygame.font.init()
@@ -41,10 +43,11 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
                 # Synchronize sleep with stop_flag.wait() for a specific interval
                 stop_flag.wait(interval)
             except KeyboardInterrupt:
+                util_logger.warning("Keyboard interrupted")
                 break  # Exit the loop if KeyboardInterrupt occurs
     except Exception as e:
-        print(f"Exception occurred in {process_identifier} update process: {e}")
-    print(f"{process_identifier} process stopped.")
+        util_logger.error(f"Exception occurred in {process_identifier} update process: {e}")
+    util_logger.warning(f"{process_identifier} process stopped.")
     
 def text_render(display, text_surface, allowed_width, start_x, clip_area_x, clip_area_y):
     spacer_width = 25
