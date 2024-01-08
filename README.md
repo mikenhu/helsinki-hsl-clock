@@ -1,14 +1,18 @@
 # HSL Clock
 
-I came across [this tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) and was inspired to create one for myself.
+[This tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) inpired me to create one for my smart home as well as to learn Python language.
 
-![Demo GIF](photos/demo.gif)
+![Main demo](demos/1.gif)
 
 The project requests to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. If you are not living in Finland, I believe you can adapt this repo to other GTFS feeds with minor modifications.
 
+Below you can also see how the HSL clock shows service alert on an earlier version (direction names couldn't scroll yet).
+
+![Older version](demos/2.gif)
+
 If you're interested in controlling this clock with Home Assistant, I include my HA configuration here as well.
 
-Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>
+Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>.
 
 ## Features
 
@@ -16,7 +20,7 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * Realtime service alerts.
 * Scroll longer station names.
 * Support up to 4 destinations.
-* Smooth animation.
+* Animations for funsy.
 * Support 60 fps.
 * Utilize quad-core Raspberry Pi models.
 * API handlings for realtime data.
