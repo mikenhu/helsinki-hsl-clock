@@ -4,7 +4,7 @@
 
 ![Main demo](demos/1.gif)
 
-The project requests to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. If you are not living in Finland, I believe you can adapt this repo to other GTFS feeds with minor modifications.
+This project sends requests to Helsinki Region Transport (HSL) which uses GTFS Realtime feeds. I believe you can adapt this repo to other GTFS feeds with minor modifications, if you are not living in Finland.
 
 Below you can also see how the HSL clock shows service alert on an earlier version (direction names couldn't scroll yet).
 
