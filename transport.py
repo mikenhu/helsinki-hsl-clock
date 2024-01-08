@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import multiprocessing
 import sys
 import signal
 
@@ -181,7 +181,7 @@ class Transport:
             self.screen.blit(self._img_double, (self.bottom_band_x, self.bottom_band_y))
 
     def run(self):
-        
+        util.setup_logger()
         config = Transit_Config.get_config()
         trip_update = HSL_Trip_Update(config)
         service_message = HSL_Service_Alert(config)

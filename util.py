@@ -1,5 +1,53 @@
 import pygame
-import multiprocessing
+import os
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+logger = None  # Initialize logger
+
+def setup_logger():
+    try:
+        # Get the directory path of the script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
+        error_log_file = os.path.join(logs_folder, 'error_logs.txt')
+
+        # Create 'logs' folder if it doesn't exist
+        os.makedirs(logs_folder, exist_ok=True)
+
+        # Grant write permissions to the 'logs' folder and log file
+        os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
+        with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
+            os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
+
+        # Create a logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)  # Set the logging level
+
+        # Create a TimedRotatingFileHandler for log rotation
+        handler = TimedRotatingFileHandler(
+            error_log_file, when='W0', interval=1, backupCount=4
+        )
+        handler.setLevel(logging.WARNING)  # Set the handler's logging level
+
+        # Define a log formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)  # Apply the formatter to the handler
+
+        # Add the handler to the logger
+        logger.addHandler(handler)
+
+        # Log an initial message to confirm successful logger setup
+        logger.info("Error log file created and logger configured successfully.")
+        
+        return logger # Return the configured logger
+
+    except FileNotFoundError as fnf_error:
+        print(f"File not found error: {fnf_error}")
+    except PermissionError as perm_error:
+        print(f"Permission error: {perm_error}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 def setup_fonts():
     pygame.font.init()
@@ -43,9 +91,9 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
             except KeyboardInterrupt:
                 break  # Exit the loop if KeyboardInterrupt occurs
     except Exception as e:
-        print(f"Exception occurred in {process_identifier} update process: {e}")
-    print(f"{process_identifier} process stopped.")
-    
+        logger.error(f"Exception occurred in {process_identifier} update process: {e}")
+    logger.info(f"{process_identifier} process stopped.")
+
 def text_render(display, text_surface, allowed_width, start_x, clip_area_x, clip_area_y):
     spacer_width = 25
     text_length = text_surface.get_width() + spacer_width
@@ -71,3 +119,5 @@ def text_render(display, text_surface, allowed_width, start_x, clip_area_x, clip
         text_x = clip_area_x + (allowed_width - text_rect.width) // 2
         text_y = clip_area_y + (text_surface.get_height() - text_rect.height) // 2
         display.blit(text_surface, (text_x, text_y))
+
+setup_logger()
