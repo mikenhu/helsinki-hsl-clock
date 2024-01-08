@@ -45,9 +45,11 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
             except KeyboardInterrupt:
                 util_logger.info("Keyboard interrupted")
                 break  # Exit the loop if KeyboardInterrupt occurs
+            except Exception as e:
+                util_logger.error(f"Exception occurred in {process_identifier} update process: {e}")
+
     except Exception as e:
-        util_logger.error(f"Exception occurred in {process_identifier} update process: {e}")
-    util_logger.warning(f"{process_identifier} process stopped.")
+        util_logger.warning(f"{process_identifier} process stopped.")
     
 def text_render(display, text_surface, allowed_width, start_x, clip_area_x, clip_area_y):
     spacer_width = 25
