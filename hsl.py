@@ -7,16 +7,57 @@ import json
 import time
 import socket
 import configparser
+import logging
 import sys
+import os
 
-import util
+from logging.handlers import TimedRotatingFileHandler
 
-logger = util.logger
+try:
+    # Get the directory path of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    logs_folder = os.path.join(script_dir, 'logs')  # Path to the 'logs' folder
+    error_log_file = os.path.join(logs_folder, 'error_logs.txt')
+
+    # Create 'logs' folder if it doesn't exist
+    os.makedirs(logs_folder, exist_ok=True)
+
+    # Grant write permissions to the 'logs' folder and log file
+    os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
+    with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
+        os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
+
+    # Create a logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # Set the logging level
+
+    # Create a TimedRotatingFileHandler for log rotation
+    handler = TimedRotatingFileHandler(
+        error_log_file, when='W0', interval=1, backupCount=4
+    )
+    handler.setLevel(logging.WARNING)  # Set the handler's logging level
+
+    # Define a log formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)  # Apply the formatter to the handler
+
+    # Add the handler to the logger
+    logger.addHandler(handler)
+
+    # Log an initial message to confirm successful logger setup
+    logger.info("Error log file created and logger configured successfully.")
+
+except FileNotFoundError as fnf_error:
+    print(f"File not found error: {fnf_error}")
+except PermissionError as perm_error:
+    print(f"Permission error: {perm_error}")
+except Exception as e:
+    print(f"Error: {e}")
 
 # API call
 def fetch_feed(url):
     MAX_RETRIES = 10
-    # logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -43,15 +84,15 @@ def fetch_feed(url):
                 continue  # Move to the next attempt with a new session
             else:
                 logger.error(f"Request error: {e}.")
-                # sys.exit(1)
+                sys.exit(1)
                 break  # Break the loop for other request errors
 
         except Exception as e:
             logger.exception(f"Unexpected error: {e}.")
             logger.warning("Restarting Pi due to critical exception.")
             sys.exit(1)
-            # os.system("sudo reboot")  # Restart Pi for any exception
-            # break  # Break the loop for unexpected errors
+            os.system("sudo reboot")  # Restart Pi for any exception
+            break  # Break the loop for unexpected errors
 
         finally:
             session.close()  # Close the session after each attempt
@@ -70,11 +111,10 @@ def process_feed_multicores(fetch_func):
         result = executor.submit(fetch_func)
         return result.result()
 
-# Write the response to file
-# def write_to_file(input, file_name):
-#     result_str = str(input)
-#     with open(file_name, 'w') as file:
-#         file.write(result_str)
+def write_to_file(input, file_name):
+    result_str = str(input)
+    with open(file_name, 'w') as file:
+        file.write(result_str)
 
 # Parse data from config.ini file
 class Transit_Config:
@@ -90,7 +130,7 @@ class Transit_Config:
         config = configparser.ConfigParser()
         config.read("config.ini")
         if "HSL-CONFIG" not in config:
-            logger.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
+            logging.error("No or badly formatted 'HSL-CONFIG' section found in config file.")
             sys.exit(1)  # Exit with an error code indicating failure
 
         config_options = ["trip_update_url", "service_alerts_url", "stops", "language", "time_row_num"]
@@ -98,7 +138,7 @@ class Transit_Config:
         for option in config_options:
             configured_value = config['HSL-CONFIG'].get(option)
             if not configured_value:
-                logger.error(f"Missing {option} from config file, but it is required.")
+                logging.error(f"Missing {option} from config file, but it is required.")
                 sys.exit(1)  # Exit with an error code indicating failure
             else:
                 configured_values[option] = configured_value.strip()
@@ -151,7 +191,7 @@ class HSL_Trip_Update:
             for stop_id, wait_times in stop_times.items()  # Loop through each stop
         } # 'Kivenlahti': ['6 mins', '12 mins'], 'Vuosaari': ['1 min', '6 mins']}
         
-        logger.info(stop_times)
+        print(stop_times)
         return stop_times
 
     def transport_status(self):
@@ -193,10 +233,8 @@ class HSL_Service_Alert:
                     messages.add(alert)
         
         if len(messages) == 1:
-            logger.info(next(iter(messages)))
             return next(iter(messages))
         elif len(messages) > 1:
-            logger.info(' '.join(messages))
             return ' '.join(messages)
         else:
             return None
