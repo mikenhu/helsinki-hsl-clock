@@ -16,7 +16,6 @@ api_logger = logging.getLogger(__name__)
 # API call
 def fetch_feed(url):
     MAX_RETRIES = 10
-    # logger = logging.getLogger(__name__)
     
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -25,7 +24,7 @@ def fetch_feed(url):
             response = session.get(url)
             
             if response.status_code == 200:
-                # print(f"Server status ({response.status_code})")
+                api_logger.info(f"Server status ({response.status_code})")
                 feed.ParseFromString(response.content)
                 return feed
             elif 500 <= response.status_code < 600:
@@ -152,8 +151,7 @@ class HSL_Trip_Update:
             for stop_id, wait_times in stop_times.items()  # Loop through each stop
         } # 'Kivenlahti': ['6 mins', '12 mins'], 'Vuosaari': ['1 min', '6 mins']}
         
-        api_logger.debug(stop_times)
-        print(stop_times)
+        api_logger.info(stop_times)
         return stop_times
 
     def transport_status(self):

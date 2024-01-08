@@ -43,7 +43,7 @@ def update_process(process_identifier, stop_flag, updater_func, updater_args, in
                 # Synchronize sleep with stop_flag.wait() for a specific interval
                 stop_flag.wait(interval)
             except KeyboardInterrupt:
-                util_logger.warning("Keyboard interrupted")
+                util_logger.info("Keyboard interrupted")
                 break  # Exit the loop if KeyboardInterrupt occurs
     except Exception as e:
         util_logger.error(f"Exception occurred in {process_identifier} update process: {e}")

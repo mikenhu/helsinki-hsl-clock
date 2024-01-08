@@ -1,7 +1,6 @@
 # Credit to https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
 
 from datetime import datetime
-# import time
 import os
 
 ## Init logging start 
@@ -12,7 +11,7 @@ def logger_init():
     try:
         # print("Start: " +__name__)
         foldername = "logs"
-        filename = "error_logs.log"
+        filename = "errors.log"
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
         logs_folder = os.path.join(script_dir, foldername)  # Path to the 'logs' folder
@@ -20,19 +19,16 @@ def logger_init():
 
         ## get logger
         logger = logging.getLogger() ## root logger
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(logging.INFO)
 
         # Create 'logs' folder if it doesn't exist
         os.makedirs(logs_folder, exist_ok=True)
 
         # Grant write permissions to the 'logs' folder and log file
         os.chmod(logs_folder, 0o777)  # Set write permissions for the 'logs' folder
-            # with open(error_log_file, 'a'):  # Create/append to log file to ensure it exists
-                # os.chmod(error_log_file, 0o666)  # Set write permissions for the log file
 
         # File handler
-        # logfilename = datetime.now().strftime("%Y%m%d") + f"_{filename}"
-        file = logging.handlers.TimedRotatingFileHandler(error_log_file, when='W0', interval=1, backupCount=4)
+        file = logging.handlers.TimedRotatingFileHandler(error_log_file, when='MIDNIGHT', interval=1, backupCount=7)
         fileformat = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
         file.setLevel(logging.WARNING)
         file.setFormatter(fileformat)
