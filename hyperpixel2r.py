@@ -2,6 +2,11 @@
 import os
 import sys
 import pygame
+import logging
+from logger import logger_init
+        
+logger_init()
+display_logger = logging.getLogger(__name__)
 
 class Hyperpixel2r:
     screen = None
@@ -27,8 +32,7 @@ class Hyperpixel2r:
 
     def _exit(self, sig, frame):
         self._running = False
-        print("\nExiting!...\n")
-        pygame.quit()
+        display_logger.info("\nExiting!...\n")
         sys.exit(0)
 
     def _init_display(self):
@@ -37,10 +41,10 @@ class Hyperpixel2r:
         # http://www.karoltomala.com/blog/?p=679
         DISPLAY = os.getenv("DISPLAY")
         if DISPLAY:
-            print("Display: {0}".format(DISPLAY))
+            display_logger.info("Display: {0}".format(DISPLAY))
 
         if os.getenv('SDL_VIDEODRIVER'):
-            print("Using driver specified by SDL_VIDEODRIVER: {}".format(os.getenv('SDL_VIDEODRIVER')))
+            display_logger.info("Using driver specified by SDL_VIDEODRIVER: {}".format(os.getenv('SDL_VIDEODRIVER')))
             pygame.display.init()
             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
             if size == (480, 480): # Fix for 480x480 mode offset
@@ -58,21 +62,21 @@ class Hyperpixel2r:
                     if size == (480, 480):  # Fix for 480x480 mode offset
                         size = (640, 480)
                     self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.NOFRAME | pygame.HWSURFACE)
-                    print("Using driver: {0}, Framebuffer size: {1:d} x {2:d}".format(driver, *size))
+                    display_logger.info("Using driver: {0}, Framebuffer size: {1:d} x {2:d}".format(driver, *size))
                     return
                 except pygame.error as e:
-                    print('Driver "{0}" failed: {1}'.format(driver, e))
+                    display_logger.error('Driver "{0}" failed: {1}'.format(driver, e))
                     continue
                 break
 
-        print("All SDL drivers failed, falling back to raw framebuffer access.")
+        display_logger.warning("All SDL drivers failed, falling back to raw framebuffer access.")
         self._rawfb = True
         os.putenv('SDL_VIDEODRIVER', 'dummy')
         pygame.display.init()  # Need to init for .convert() to work
         self.screen = pygame.Surface((480, 480))
 
     def __del__(self):
-        "Destructor to make sure pygame shuts down, etc."
+        display_logger.info("Destructor to make sure pygame shuts down, etc.")
 
     def _updatefb(self):
         fbdev = os.getenv('SDL_FBDEV', '/dev/fb0')
