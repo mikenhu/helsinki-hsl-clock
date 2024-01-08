@@ -1,6 +1,6 @@
 # HSL Clock
 
-[This tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) inpired me to create one for my smart home as well as to learn Python language.
+[This tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) aspired me to create one for my smart home as well as to learn Python language.
 
 ![Main demo](demos/1.gif)
 
@@ -12,7 +12,7 @@ Below you can also see how the HSL clock shows service alert on an earlier versi
 
 If you're interested in controlling this clock with Home Assistant, I include my HA configuration here as well.
 
-Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project <https://github.com/eddible/tfgm-tram-clock>.
+Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock project inspiration <https://github.com/eddible/tfgm-tram-clock>.
 
 ## Features
 
