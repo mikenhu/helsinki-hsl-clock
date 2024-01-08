@@ -1,46 +1,31 @@
-#!/usr/bin/env python3
-import os
 import sys
 import signal
+import logging
+import multiprocessing
 
 from hsl import *
 from util import *
+from logger import logger_init
+
+# Initiate root logger
+logger_init()
+logger = logging.getLogger(__name__)
 
 # Credit to Pimoroni for the Hyperpixel2r class
-class Hyperpixel2r:
-    screen = None
-
-    def __init__(self):
-        self._init_display()
-
-        self.screen.fill((0, 0, 0))
-        if self._rawfb:
-            self._updatefb()
-        else:
-            pygame.display.update()
-
-        # For some reason the canvas needs a 7px vertical offset
-        # circular screens are weird...
-        self.center = (240, 247)
-        self._radius = 240
-
-        # Distance of hour marks from center
-        # self._marks = 220
-
-        self._running = False
-        self._origin = pygame.math.Vector2(*self.center)
-        self._clock = pygame.time.Clock()
-        self._colour = (255, 0, 255)
-
+class Transport:
+    def __init__(self, display):
+        # Initiate Hyperpixel display
+        self.screen = display.screen
+        self._exit = display._exit
+        self._rawfb = display._rawfb
+        self._updatefb = display._updatefb()
+        
         # Load the image, reduce the size of the tram icon and create img object
         # Credit for the icon source: https://www.flaticon.com/free-icons/train
-        size_single = (512 // 6, 358 // 6)
-        size_double = (1050 // 6, 367 // 6)
-        size_square = (512 // 10, 512 // 10)
-        self._img_double = load_and_scale_image("imgs/double-tram.png", size_double)
-        self._img_left = load_and_scale_image("imgs/single-tram-left.png", size_single)
-        self._img_right = load_and_scale_image("imgs/single-tram-right.png", size_single)
-        self._img_warning = load_and_scale_image("imgs/warning.png", size_square)
+        self._img_double = load_and_scale_image("imgs/double-tram.png", (1050 // 6, 367 // 6))
+        self._img_left = load_and_scale_image("imgs/single-tram-left.png", (512 // 6, 358 // 6))
+        self._img_right = load_and_scale_image("imgs/single-tram-right.png", (512 // 6, 358 // 6))
+        self._img_warning = load_and_scale_image("imgs/warning.png", (512 // 10, 512 // 10))
 
         # Initiate queue
         self.trip_status = None
@@ -58,85 +43,10 @@ class Hyperpixel2r:
         self.table_x = 40
         self.table_y = 300
         self.start_cell_x = 0
-
+        
+        self._clock = pygame.time.Clock()
         self._running = True
 
-    def _exit(self, sig, frame):
-        self._running = False
-        print("\nExiting!...\n")
-
-    def _init_display(self):
-        self._rawfb = False
-        # Based on "Python GUI in Linux frame buffer"
-        # http://www.karoltomala.com/blog/?p=679
-        DISPLAY = os.getenv("DISPLAY")
-        if DISPLAY:
-            print("Display: {0}".format(DISPLAY))
-
-        if os.getenv("SDL_VIDEODRIVER"):
-            print(
-                "Using driver specified by SDL_VIDEODRIVER: {}".format(
-                    os.getenv("SDL_VIDEODRIVER")
-                )
-            )
-            pygame.display.init()
-            size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-            if size == (480, 480):  # Fix for 480x480 mode offset
-                size = (640, 480)
-            self.screen = pygame.display.set_mode(
-                size,
-                pygame.FULLSCREEN
-                | pygame.DOUBLEBUF
-                | pygame.NOFRAME
-                | pygame.HWSURFACE,
-            )
-            return
-
-        else:
-            # Iterate through drivers and attempt to init/set_mode
-            for driver in ["rpi", "kmsdrm", "fbcon", "directfb", "svgalib"]:
-                os.putenv("SDL_VIDEODRIVER", driver)
-                try:
-                    pygame.display.init()
-                    size = (
-                        pygame.display.Info().current_w,
-                        pygame.display.Info().current_h,
-                    )
-                    if size == (480, 480):  # Fix for 480x480 mode offset
-                        size = (640, 480)
-                    self.screen = pygame.display.set_mode(
-                        size,
-                        pygame.FULLSCREEN
-                        | pygame.DOUBLEBUF
-                        | pygame.NOFRAME
-                        | pygame.HWSURFACE,
-                    )
-                    print(
-                        "Using driver: {0}, Framebuffer size: {1:d} x {2:d}".format(
-                            driver, *size
-                        )
-                    )
-                    return
-                except pygame.error as e:
-                    print('Driver "{0}" failed: {1}'.format(driver, e))
-                    continue
-                break
-
-        print("All SDL drivers failed, falling back to raw framebuffer access.")
-        self._rawfb = True
-        os.putenv("SDL_VIDEODRIVER", "dummy")
-        pygame.display.init()  # Need to init for .convert() to work
-        self.screen = pygame.Surface((480, 480))
-
-    def __del__(self):
-        "Destructor to make sure pygame shuts down, etc."
-
-    def _updatefb(self):
-        fbdev = os.getenv("SDL_FBDEV", "/dev/fb0")
-        with open(fbdev, "wb") as fb:
-            fb.write(self.screen.convert(16, 0).get_buffer())
-    
-    #--------------- Code for the clock starts here --------------------#
     def trip_table(self, data_queue, game_font, font_color, scroll_speed=0.15, clear_color=(0, 0, 0)):        
         # Usable rectangle surface is 400x260
         # Minus the middle space (maybe 20px width) -> (400-20)/2 = 190px width per column
@@ -151,17 +61,18 @@ class Hyperpixel2r:
 
         self.table_x -= scroll_speed
 
-        # Update data
+        # Update trip data
         if not data_queue.empty():
             updated_data = data_queue.get()
             # Only update if there is new data
             if self.trip_status != updated_data:
+                logger.info("Update trip data")
                 self.trip_status = updated_data
         
         if self.trip_status is not None:
             # Clear screen before rendering new data
             pygame.draw.rect(self.screen, clear_color, (0, 102, 480, 287))
-            status_count = len(self.trip_status)
+            platform_count = len(self.trip_status)
 
             # Initialize row counter
             row = 1
@@ -170,17 +81,17 @@ class Hyperpixel2r:
             x = LEFT_COL_X
             y = LEFT_COL_Y
 
-            if status_count == 1:
+            if platform_count == 1:
                 COL_WIDTH = 400
 
             # Only redener for 4 platforms
-            if status_count <= 4:
+            if platform_count <= 4:
                 for location, times in self.trip_status.items():
                     text_render(self.screen, render_font(game_font, location, font_color), COL_WIDTH, self.table_x, x, y)
                     y += ROW_SPACER
                     row += 1
                     # Render setting for one platform
-                    if status_count == 1:
+                    if platform_count == 1:
                         for time in times:
                             text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
@@ -191,7 +102,7 @@ class Hyperpixel2r:
                                 y += ROW_SPACER
                                 row += 1
                     # Render setting for two platforms
-                    elif status_count == 2:
+                    elif platform_count == 2:
                         for time in times:
                             text_render(self.screen, render_font(game_font, time, font_color), COL_WIDTH, self.table_x, x, y)
                             y += ROW_SPACER
@@ -207,12 +118,12 @@ class Hyperpixel2r:
                             x = RIGHT_COL_X
                             y = RIGHT_COL_Y
                     # Render setting for 3 and 4 platforms
-                    elif status_count in (3, 4):
+                    elif platform_count in (3, 4):
                         text_render(self.screen, render_font(game_font, times[0], font_color), COL_WIDTH, self.table_x, x, y)
                         y += ROW_SPACER
                         row += 1
                         
-                        if row > status_count:
+                        if row > platform_count:
                             row = 0
                             x = RIGHT_COL_X
                             y = RIGHT_COL_Y
@@ -228,6 +139,7 @@ class Hyperpixel2r:
             updated_data = data_queue.get()
             # Only update if there is new data
             if self.alert_result != updated_data:
+                logger.info("Update trip data")
                 self.alert_result = updated_data
 
         # Clear top and bottom screens
@@ -277,7 +189,7 @@ class Hyperpixel2r:
 
     def run(self):
         config = Transit_Config.get_config()
-        trip_status = HSL_Trip_Update(config)
+        trip_update = HSL_Trip_Update(config)
         service_message = HSL_Service_Alert(config)
 
         game_font, font_color = setup_fonts()
@@ -287,7 +199,7 @@ class Hyperpixel2r:
         alert_queue = multiprocessing.Queue()
         stop_flag = self.stop_flag # Stop process flag
 
-        trip_update_process = multiprocessing.Process(target=update_process, args=("Transport status update", stop_flag, fetch_data, (trip_status, 'transport_status'), 15, trip_queue))
+        trip_update_process = multiprocessing.Process(target=update_process, args=("Transport status update", stop_flag, fetch_data, (trip_update, 'transport_status'), 15, trip_queue))
         alert_update_process = multiprocessing.Process(target=update_process, args=("Service alert update", stop_flag, fetch_data, (service_message, 'service_alert'), 300, alert_queue))
 
         trip_update_process.start()
@@ -304,7 +216,7 @@ class Hyperpixel2r:
             self.scrolling_bands(alert_queue, game_font, font_color)
 
             if self._rawfb:
-                self._updatefb()
+                self._updatefb
             else:
                 pygame.display.update()
                 pygame.event.pump()
@@ -314,8 +226,6 @@ class Hyperpixel2r:
         trip_update_process.join()
         alert_update_process.join()
         
+        logger.info("Aborted by user")
         pygame.quit()
         sys.exit(0)
-
-display = Hyperpixel2r()
-display.run()
