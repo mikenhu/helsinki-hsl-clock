@@ -1,6 +1,6 @@
 # HSL Clock
 
-[This tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) aspired me to create one for my smart home as well as to learn Python language.
+[This tweet on X](https://twitter.com/eddible/status/1564917603180617731?s=20&t=dcHyyQINVi-xO-h7mmJiKw) aspired me to create one for my smart home as well as to learn some Python.
 
 ![Main demo](demos/1.gif)
 
@@ -104,13 +104,13 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
 * You can now configure your config file with your own details. Run this command:
   * `nano config.ini`
   * Edit the file as you wish.
-    * URLs: HSL APIs.
-    * Language (ISO).
+    * URLs: HSL API endpoints.
+    * Language: HSL has three options: "en", "fi", or "sv".
     * Number of timetable rows you want to have (up to 3 rows).
-    * Insert your metro/bus/tram stops (from 1 up to 4 destinations). When you have more than 2 destinations, the time row is limited to 1.
+    * Insert your metro/bus/tram stops (from 1 up to 4 destinations). When you have more than 2 stops, the timetable row is limited to 1.
       * stop_id: one stop id per entry.
       * direction_name: self-naming due to HSL data does not include the head sign names.
-      * direction_id: supposedly 0 is inbound, 1 is outbound. Uneccessary at the moment.
+      * direction_id: supposedly 0 is inbound, 1 is outbound. Unused at the moment.
       * route_id: can contain multiple routes per entry.
   * The content should be formatted like this:
 
@@ -151,7 +151,6 @@ Great thanks to Edd Abrahamsen-Mills @eddible for his TFGM Metrolink Clock proje
   # Disable the LED when you boot your Pi Zero 2 W to prevent light leak
   echo none | sudo tee /sys/class/leds/led0/trigger
   echo 0 | sudo tee /sys/class/leds/led0/brightness
-
   ```
 
 * To save your changes, press `CTRL+X` → `Y` → `Enter`
